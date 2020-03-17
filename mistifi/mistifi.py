@@ -37,13 +37,14 @@ class MistiFi:
             http.client.HTTPConnection.debuglevel = 0
 
 
-        self.token = str(token)
-        self.username = str(username)
-        self.password = str(password)
-        self.user_token = str(user_token)
+        self.token = token
+        self.username = username
+        self.password = password
+        self.user_token = user_token
         self.verify = bool(verify)
         self.timeout = abs(timeout)
         self.apiv = apiv
+        self.csrftoken = None
 
 
         self.cloud = self._select_cloud(cloud)
@@ -58,13 +59,65 @@ class MistiFi:
         logger.debug(f'Base URL: {self.mist_base_api_url}')
 
         # Configure the session
-        self._config_session()
+        #self._config_session()
 
+        '''
         #
         # If token provided, use it to log into the Mist cloud...
         #
         if token:
             self.token = token
+            self.headers['Authorization'] = f'Token {self.token}'
+
+        # ...otherwise prompt for user credentials if not provided
+        else:
+            #
+            # If username not provided, ask for it
+            #
+            self.login_payload = {"email": None, "password": None}
+
+            if not self.username:
+                user_input = input("Mist username required. Should I use `{}` to continue [Y/n]?".format(getpass.getuser()))
+
+                # Option for a user if they want to specify a username
+                if user_input.lower() == "n":
+                    #kwargs.update({ 'username': input("Username:\x20") })
+                    self.username = input("Username:\x20")
+                # ...any other answer, just use their current username
+                else:
+                    self.username = getpass.getuser()
+
+            self.login_payload['email'] = self.username
+
+            #
+            # If password not provided, ask for it
+            #
+            if not self.password:
+                #
+                # If password was not provided, get it from user input
+                self.password = getpass.getpass(f"Mist password for user `{self.username}` required:\x20".format(self.username))
+            
+            # Then set it in the login payload outside of conditional
+            # as the password might have been passed in with the object
+            self.login_payload['password'] = self.password
+
+            # Finaly login
+            self._user_login(self.login_payload)
+
+        # Reset the log level to ERROR only
+        logzero.loglevel(logging.ERROR)
+        '''
+    def login(self):
+
+        logger.info(f'Calling communicate()')
+
+        # Configure the session
+        self._config_session()
+
+        #
+        # If token provided, use it to log into the Mist cloud...
+        #
+        if self.token:
             self.headers['Authorization'] = f'Token {self.token}'
 
         # ...otherwise prompt for user credentials if not provided
@@ -129,6 +182,64 @@ class MistiFi:
         #assert_status_hook = lambda response, *args, **kwargs: response.raise_for_status()
         #self.session.hooks["response"] = [assert_status_hook]
 
+    def _user_login(self, login_payload):
+        '''Method to authenticate with username/password credentials. 
+
+        Params:
+        ------- 
+        None
+        
+        Return:
+        -------
+        Nothing
+        '''
+        logger.info(f'Calling _user_login()')
+        
+        url_login = self._resource_url(uri='/login')
+        #url_login = self._resource_url(org_id=':org_id')
+        #url_login = self._resource_url(site_id=':site_id')
+        #url_login = self._resource_url(site_id=':site_id', uri='/uri')
+        #url_login = self._resource_url(org_id=":org_id", site_id=':site_id', uri='/uri')
+        #url_login = self._resource_url(org_id=":org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
+        #url_login = self._resource_url(org_id="/:org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
+        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',site_id=':site_id', uri='/uri')
+        #url_login = self._resource_url(collection='/:collection',object_id=':obj_id',site_id=':site_id')
+        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',org_id=':org_id', uri='/uri')
+        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',org_id=":org_id", site_id=':site_id', uri='/uri')
+        #url_login = self._resource_url(somthing='/:sdkinvite_id/email', blah="/blah", org_id=":org_id", site_id=':site_id', uri='/uri')
+        #exit(0)
+
+        # Login with or without the 2 factor token
+        resp = self.session.post(url_login, json=login_payload)
+
+        #resp = self._api_call("POST", url_login, json=login_payload)
+        resp_head = resp.headers
+        logger.info(f'Login response code: {resp.status_code}')
+        logger.debug(f'Response HEAD: {resp_head}')
+        
+        # Need to split on ':' first and thake the first element, then split on '=' and take the second one
+        try:
+            self.csrftoken = resp.cookies['csrftoken']
+        except KeyError:
+            logger.exception("'Set-Cookie' not in headder response")
+            return
+
+        #self.headers['csrftoken'] = f"{csrf_token}"
+        logger.debug(f'Updated Headers: {self.headers}')
+        logger.debug(f'Response HEAD: {self.csrftoken}')
+
+        # figure out how to incorporate 2FA. this below isn't it.
+        #resp = whoami()
+        #logger.debug(f'Self response: {resp.json()}')
+        #logger.debug(f'Self head: {resp.headers}')
+
+        return
+
+        #if 'two_factor' in resp_head:
+        #    url_2fa = self._resource_url("/api/v1/two_factor")
+        #    resp = self._api_call("POST", url_2fa)
+        #    logger.debug(f'Self data: {resp}')
+
     def _api_call(self, method, url, **kwargs):
         '''The API call handler.
 
@@ -155,9 +266,10 @@ class MistiFi:
         logger.info("Calling _api_call()")
         logger.info(f"Method is: {method.upper()}")
         logger.info(f"Calling URL: {url}")
+        logger.debug(f'With headers: {self.headers}')
 
         # This is where the call hapens
-        response = getattr(self.session, method.lower())(url, **kwargs)
+        response = getattr(self.session, method.lower())(url, cookies=dict(csrftoken=self.csrftoken), **kwargs)
         resp_head = response.headers
 
         logger.info(f"Response status code: {response.status_code}")
@@ -190,61 +302,6 @@ class MistiFi:
         # and the response received from it
         #return jresp, resp_head
 
-    def _user_login(self, login_payload):
-        '''Method to authenticate with username/password credentials. 
-
-        Params:
-        ------- 
-        None
-        
-        Return:
-        -------
-        Nothing
-        '''
-        logger.info(f'Calling _user_login()')
-        
-        url_login = self._resource_url(uri='/login')
-        #url_login = self._resource_url(org_id=':org_id')
-        #url_login = self._resource_url(site_id=':site_id')
-        #url_login = self._resource_url(site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(org_id=":org_id", site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(org_id=":org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
-        #url_login = self._resource_url(org_id="/:org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(collection='/:collection',object_id=':obj_id',site_id=':site_id')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',org_id=':org_id', uri='/uri')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',org_id=":org_id", site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email', blah="/blah", org_id=":org_id", site_id=':site_id', uri='/uri')
-        #exit(0)
-
-        # Login with or without the 2 factor token
-        resp = self.session.post(url_login, json=login_payload)
-        #resp = self._api_call("POST", url_login, json=login_payload)
-        resp_head = resp.headers
-        logger.info(f'Login response code: {resp.status_code}')
-        logger.debug(f'Response HEAD: {resp_head}')
-        
-        # Need to split on ':' first and thake the first element, then split on '=' and take the second one
-        try:
-            csrf_token = resp_head['Set-Cookie'].split(";")[0].split("=")[1]
-        except KeyError:
-            logger.exception("'Set-Cookie' not in headder response")
-            return
-
-        self.headers['X-CSRFTOKEN'] = csrf_token
-        logger.debug(f'Updated Headers: {self.headers}')
-
-        # figure out how to incorporate 2FA. this below isn't it.
-        #resp = whoami()
-        #logger.debug(f'Self response: {resp.json()}')
-        #logger.debug(f'Self head: {resp.headers}')
-
-        return
-
-        #if 'two_factor' in resp_head:
-        #    url_2fa = self._resource_url("/api/v1/two_factor")
-        #    resp = self._api_call("POST", url_2fa)
-        #    logger.debug(f'Self data: {resp}')
 
     def logout(self):
         '''Logs out of the current instance of MM
@@ -439,7 +496,6 @@ class MistiFi:
     def wlans(self, method='GET', data=None, **kwargs):
         #   /api/v1/sites/:site_id/wlans
         #   /api/v1/sites/:site_id/wlans/:wlan_id/
-
         #   /api/v1/sites/:site_id/wlans/:wlan_id/parameter << POST, DELETE, PUT
         #   /api/v1/sites/:site_id/wlans/derived
         #   /api/v1/sites/:site_id/wlans/derived?resolve=false

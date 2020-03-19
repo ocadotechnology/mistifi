@@ -22,14 +22,7 @@ clouds = {
 class MistiFi:
     '''All Mist API uris are found on https://api.mist.com/api/v1/docs/Home, and are accessible if logged in'''
 
-    def __init__(self, cloud="us", token=None, username=None, password=None, user_token=None, apiv=1, verify=False, timeout=10, debug=False):
-
-        # Set logging to ERROR to not display anything by default
-        if debug:
-            logzero.loglevel(logging.DEBUG)
-        else:
-            logzero.loglevel(logging.ERROR)
-
+    def __init__(self, cloud="us", token=None, username=None, password=None, user_token=None, apiv=1, verify=False, timeout=10):
 
         self.token = token
         self.username = username
@@ -39,18 +32,8 @@ class MistiFi:
         self.timeout = abs(timeout)
         self.apiv = apiv
         self.csrftoken = None
-
-
         self.cloud = self._select_cloud(cloud)
-        logger.debug(f"Selected cloud: '{self.cloud}' >> '{cloud.upper()}'")
-        #try:
-        #    self.cloud = clouds[cloud.upper()]
-        #except KeyError:
-        #    logging.exception(f'Not a valid entry {list(clouds.keys())}. Using "US" as default.')
-        #    self.cloud = clouds["US"]
-
         self.mist_base_api_url = f'https://{self.cloud}/'
-        logger.debug(f'Base URL: {self.mist_base_api_url}')
 
         # Configure the session
         #self._config_session()
@@ -102,8 +85,15 @@ class MistiFi:
         logzero.loglevel(logging.ERROR)
         '''
     def comms(self):
+        '''The first method to be called to configure the session and to login to the Mist cloud.
+
+        It sets all the required headers.
+        '''
 
         logger.info('Calling communicate()')
+
+        logger.debug(f"Selected cloud: '{self.cloud}' >> '{cloud.upper()}'")
+        logger.debug(f'Base URL: {self.mist_base_api_url}')
 
         # Configure the session
         self._config_session()
@@ -154,8 +144,30 @@ class MistiFi:
         # Reset the log level to ERROR only
         logzero.loglevel(logging.ERROR)
 
+    def logout(self):
+        '''Logs out of the cloud, which is not really 
+        needed, but avialable anyaway.
+
+        Returns
+        -------
+        The HTTP JSON response
+        '''
+        logger.info("Calling logout()")
+
+        url_logout = self._resource_url(uri="/logout")
+        resp = self._api_call("POST", url_logout)
+
+        logging.debug(f'Logout response: {resp}')
+
+        # Reset logging to ERROR as this method is called through _api_call and 
+        # is not reset as if it were with by calling resource
+        logzero.loglevel(logging.ERROR)
+
+        return resp
+
     def _config_session(self):
-        '''Session configurator for headers and requests.Session()'''
+        '''Session configurator for headers and requests.Session()
+        '''
 
         logger.info(f'Calling _config_session()')
 
@@ -177,6 +189,22 @@ class MistiFi:
         # Handle response status
         #assert_status_hook = lambda response, *args, **kwargs: response.raise_for_status()
         #self.session.hooks["response"] = [assert_status_hook]
+
+    def _select_cloud(self, cloud):
+        '''Cloud selector, which either selects the specified 'cloud' or returns the default 'US' one.
+
+        Params
+        ------
+        cloud: `str`
+            Can be 'us' or 'eu', or 'EU'
+        '''
+        logger.info("Calling _select_cloud()")
+
+        try:
+            return clouds[cloud.upper()]
+        except KeyError:
+            logging.exception(f'Not a valid entry {list(clouds.keys())}. Using "US" as default.')
+            return clouds["US"]
 
     def _user_login(self, login_payload):
         '''Method to authenticate with username/password credentials. 
@@ -229,13 +257,13 @@ class MistiFi:
     def _api_call(self, method, url, **kwargs):
         '''The API call handler.
 
-        This method is used by `resource`. kwargs passed in get passed to the 
+        This method is used by `resource()`. kwargs passed in get passed to the 
         requests.session instance
 
         Params
         ------
         method: `str`
-            either `POST` or `GET`
+            A valid HTTP method
 
         url: `str`
             URL with the endpoint included
@@ -272,31 +300,10 @@ class MistiFi:
         
         return jresponse
 
-    def logout(self):
-        '''Logs out of the cloud, which is not really 
-        needed, but avialable anyaway.
-
-        Returns
-        -------
-        The HTTP response
-        '''
-        logger.info("Calling logout()")
-
-        url_logout = self._resource_url(uri="/logout")
-        resp = self._api_call("POST", url_logout)
-
-        logging.debug(f'Logout response: {resp}')
-
-        # Reset logging to ERROR as this method is called through _api_call and 
-        # is not reset as if it were with by calling resource
-        logzero.loglevel(logging.ERROR)
-
-        return resp
-
     def _resource_url(self, **kwargs):
         '''The resource URL formatter
         
-        Will return the propperly formated url with any provided org_id, site_id or uri or a
+        Will return the propperly formated url with any provided org_id, site_id, uri or parameters, or a
         combination of all
 
         Args
@@ -307,10 +314,12 @@ class MistiFi:
             The Site ID
         uri: `str`
             The endpoint resource, e.g. '/self', or 'self', or '/self/'
+        params: dict
+            Parameters that get added to the request. These get handled by the params of requests.
         
         Returns
         -------
-        The full URL string to the requested 'uri' resource under the 'org_id' and 'site_id' if provided.
+        The full URL string to the requested endpoint
         '''
         logger.info("Calling _resource_url()")
         logger.info(f"kwargs in: {kwargs}")
@@ -368,22 +377,6 @@ class MistiFi:
 
         return url
 
-    def _select_cloud(self, cloud):
-        '''Cloud selector, which either selects the specified 'cloud' or returns the default 'US' one.
-
-        Params
-        ------
-        cloud: `str`
-            Can be 'us' or 'eu', or 'EU'
-        '''
-        logger.info("Calling _select_cloud()")
-
-        try:
-            return clouds[cloud.upper()]
-        except KeyError:
-            logging.exception(f'Not a valid entry {list(clouds.keys())}. Using "US" as default.')
-            return clouds["US"]
-
     def _params(self, **kwargs):
 
         logger.info("Calling _params()")
@@ -397,10 +390,6 @@ class MistiFi:
         logger.debug(f"Returned params: {params}")
 
         return params
-
-    def _determine_method(self, **kwargs):
-
-        logger.info("Calling _determine_method()")
 
     def resource(self, method, jpayload=None, **kwargs):
 
@@ -445,11 +434,5 @@ class MistiFi:
 
         return self.resource(method, jpayload=data, **kwargs)
 
-
-
-    '''
- 
-
-    '''
 
 

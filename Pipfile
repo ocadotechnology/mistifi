@@ -9,7 +9,6 @@ verify_ssl = true
 requests = "*"
 responses = "*"
 logzero = "*"
-mistyfi = {editable = true,path = "."}
 
 [requires]
 python_version = "3.7"

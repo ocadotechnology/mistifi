@@ -1,17 +1,14 @@
-import sys
 import os
 import json
 import responses
 import requests
 import unittest
-from xmltodict import parse
-from mock import patch
 
 sys.path.append(os.path.dirname(__file__) + "/../")
 #print(sys.path)
 
 from mistifi import Mistifi
-from .test_data.mmclient_data import *
+from .test_data.test_data import *
 
 LOGIN_URL = "https://api.mist.com/api/v1/login"
 
@@ -34,19 +31,15 @@ class TestMistyFi(unittest.TestCase):
         # For figuring out how to use responses
         assert resp.json() == login_resp
 
-        self.mist = MistiFi(BASE_URL, "care", "pare")
+        self.mist = MistiFi("us", "care", "pare")
+        self.mist.comms()
 
-    def test_kwargs_modify_get(self):
-        '''Test for kwargs_modify for GET method with endpoint 'configuration/object/ap_sys_prof'
-
-        Keys must have `endpoint`, `search` and `method = GET` in them
+    def test_urls(self):
+        '''Test for propper URL formatting
         '''
-        expected_kwargs = {
-            'endpoint': 'configuration/object/ap_sys_prof', 
-            'search': 'ap_sys_prof', 
-            'method': 'GET'}
+        expected_url = 'configuration/object/ap_sys_prof'
 
-        actual_kwargs = self.mmc._kwargs_modify('configuration/object/ap_sys_prof')
+        actual_url = self.mist._kwargs_modify('configuration/object/ap_sys_prof')
 
         self.assertEqual(
             expected_kwargs, 

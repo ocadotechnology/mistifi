@@ -1,7 +1,5 @@
 import getpass
 import sys
-import time
-import yaml
 import json
 
 import requests
@@ -9,14 +7,12 @@ from requests import Request, Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urljoin
 
 import logging
 import logzero
 from logzero import logger
 
-
-import http
 
 clouds = {
     "US": "api.mist.com",
@@ -31,10 +27,8 @@ class MistiFi:
         # Set logging to ERROR to not display anything by default
         if debug:
             logzero.loglevel(logging.DEBUG)
-            #http.client.HTTPConnection.debuglevel = 1
         else:
             logzero.loglevel(logging.ERROR)
-            http.client.HTTPConnection.debuglevel = 0
 
 
         self.token = token
@@ -107,9 +101,9 @@ class MistiFi:
         # Reset the log level to ERROR only
         logzero.loglevel(logging.ERROR)
         '''
-    def login(self):
+    def comms(self):
 
-        logger.info(f'Calling communicate()')
+        logger.info('Calling communicate()')
 
         # Configure the session
         self._config_session()
@@ -119,6 +113,7 @@ class MistiFi:
         #
         if self.token:
             self.headers['Authorization'] = f'Token {self.token}'
+            logger.debug('Proceeding with the token.')
 
         # ...otherwise prompt for user credentials if not provided
         else:
@@ -151,6 +146,7 @@ class MistiFi:
             # Then set it in the login payload outside of conditional
             # as the password might have been passed in with the object
             self.login_payload['password'] = self.password
+            logger.debug('Proceeding with username and password.')
 
             # Finaly login
             self._user_login(self.login_payload)
@@ -187,7 +183,8 @@ class MistiFi:
 
         Params:
         ------- 
-        None
+        login_payload: dict
+            A dict with username and password credentials
         
         Return:
         -------
@@ -212,33 +209,22 @@ class MistiFi:
         # Login with or without the 2 factor token
         resp = self.session.post(url_login, json=login_payload)
 
-        #resp = self._api_call("POST", url_login, json=login_payload)
+        # The headers and cookies in the response
         resp_head = resp.headers
+        resp_csrftoken = resp.cookies['csrftoken']
+
         logger.info(f'Login response code: {resp.status_code}')
         logger.debug(f'Response HEAD: {resp_head}')
         
-        # Need to split on ':' first and thake the first element, then split on '=' and take the second one
+        # Need to update the headers with the CSRF token to be able
+        # to POST, PUT or DELETE in further requests
         try:
-            self.csrftoken = resp.cookies['csrftoken']
+            self.session.headers['X-CSRFTOKEN'] = resp_csrftoken
         except KeyError:
             logger.exception("'Set-Cookie' not in headder response")
             return
 
-        #self.headers['csrftoken'] = f"{csrf_token}"
-        logger.debug(f'Updated Headers: {self.headers}')
-        logger.debug(f'Response HEAD: {self.csrftoken}')
-
-        # figure out how to incorporate 2FA. this below isn't it.
-        #resp = whoami()
-        #logger.debug(f'Self response: {resp.json()}')
-        #logger.debug(f'Self head: {resp.headers}')
-
-        return
-
-        #if 'two_factor' in resp_head:
-        #    url_2fa = self._resource_url("/api/v1/two_factor")
-        #    resp = self._api_call("POST", url_2fa)
-        #    logger.debug(f'Self data: {resp}')
+        logger.debug(f'Session headders should include X-CSRFTOKEN token: {self.session.headers}')
 
     def _api_call(self, method, url, **kwargs):
         '''The API call handler.
@@ -269,48 +255,30 @@ class MistiFi:
         logger.debug(f'With headers: {self.headers}')
 
         # This is where the call hapens
-        response = getattr(self.session, method.lower())(url, cookies=dict(csrftoken=self.csrftoken), **kwargs)
+        response = getattr(self.session, method.lower())(url, **kwargs)
         resp_head = response.headers
+        jresponse = response.json()
+        resp_status_code = response.status_code
 
-        logger.info(f"Response status code: {response.status_code}")
+        logger.info(f"Response status code: {resp_status_code}")
+        logger.debug(f'The response: {jresponse}')
 
         # Return nothing if status code is higher than 400
         # And return the response text, which usually has 
         # the reson for the failure.
-        if response.status_code >= 400:
-            logger.error(f"Response TEXT:\n{response.json()}")
-            #logger.error(f"Response HEAD:\n{resp_head}")
+        if resp_status_code >= 400:
+            logger.error(f"Response Error:\n{jresponse}")
             return None
         
-        # If all is good return the repsonse in JSON
-        return response.json()
-
-        #logger.debug(f"Response HEAD: {resp_head}")
-
-        # The response HEAD is allways returned and the JSON response
-        # is returned if a response has retuned some text
-        #try:
-        #    jresp = response.json()
-        #    logger.debug(f"Response JSON: {jresp}")
-        #except json.decoder.JSONDecodeError as e:
-        #    logger.exception(f'Got a JSONDecodeError exception. Check the defined endpoint is correct\n')
-        #    logger.exception(f"Response TEXT:\n{response.text}")
-        #    logger.exception(f"Response HEAD:\n{resp_head}")
-        #    return None, resp_head
-
-        # Return propper values depending on the type of HTTP request 
-        # and the response received from it
-        #return jresp, resp_head
-
+        return jresponse
 
     def logout(self):
-        '''Logs out of the current instance of MM
+        '''Logs out of the cloud, which is not really 
+        needed, but avialable anyaway.
 
         Returns
         -------
-        The full response in JSON format including `_global_result`
-
-        The error if status string returned is not 0, else it returns None
+        The HTTP response
         '''
         logger.info("Calling logout()")
 
@@ -382,6 +350,7 @@ class MistiFi:
         # Add to URL parameters from kwargs and skip the 
         # ones that are in known_id_names
         for k, v in kwargs.items():
+            
             if k in known_id_names:
                 continue
             
@@ -390,7 +359,8 @@ class MistiFi:
             if isinstance(v, str):
                 url = urljoin(f'{url}/', v.lstrip("/"))
 
-        # Remove the last '/' if in the url as it won't work with it
+        # Remove the last '/' if in the url as the call
+        # won't work with it.
         if url[-1] == "/":
             url = url[:-1]
 
@@ -413,37 +383,6 @@ class MistiFi:
         except KeyError:
             logging.exception(f'Not a valid entry {list(clouds.keys())}. Using "US" as default.')
             return clouds["US"]
-
-
-    '''
-    def _two_factor_login(self, user_token=None, prev_resp=None):
-
-        if user_token:
-            url_2fa = self._resource_url(uri="/api/v1/two_factor")
-            resp = self._api_call("POST", url_2fa)
-            logger.debug(f'Self data: {resp}')
-
-        if prev_resp and 'two_factor' in prev_resp:
-            return
-    '''
-
-    def _kwargs_modify(self, data=None, **kwargs):
-
-        logger.info("Calling _kwargs_modify()")
-        #logger.debug(f'URI endpoint: {uri}')
-        logger.debug(f'Data Payload: {data}')
-
-        #kwargs['uri'] = uri
-
-        # If data is passed in, the HTTP method is POST with that data
-        if data:
-            kwargs['method'] = 'POST'
-        else:
-            kwargs['method'] = 'GET'
-
-        logger.debug(f'kwargs out: {kwargs}')
-
-        return kwargs
 
     def _params(self, **kwargs):
 
@@ -474,7 +413,7 @@ class MistiFi:
         # Build the full URL to the resource
         resource_url = self._resource_url(**kwargs)
 
-        # Get the JSON response and error
+        # Get the JSON response
         jresp = self._api_call(method, resource_url, params=params, json=jpayload)
         
         # Reset logging to ERROR
@@ -487,8 +426,6 @@ class MistiFi:
         logger.info('Calling whoami()')
         logger.info(f'kwargs in: {kwargs}')
 
-
-        #kwargs = self._kwargs_modify(f'/api/v{self.apiv}/self', **kwargs)
         kwargs['uri'] = f'/self'
 
         return self.resource(method, **kwargs)
@@ -503,7 +440,6 @@ class MistiFi:
         logger.info('Calling wlans()')
         logger.info(f'kwargs in: {kwargs}')
 
-        #kwargs = self._kwargs_modify(**kwargs)
         if not 'wlan_id' in kwargs:
             kwargs['uri'] = f'/wlans'
 

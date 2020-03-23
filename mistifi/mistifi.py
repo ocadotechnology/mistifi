@@ -19,8 +19,11 @@ clouds = {
     "EU": "api.eu.mist.com",
 }
 
+# Set the default logging level to ERROR
+logzero.loglevel(logging.ERROR)
+
 class MistiFi:
-    '''All Mist API uris are found on https://api.mist.com/api/v1/docs/Home, and are accessible if logged in'''
+    """All Mist API uris are found on https://api.mist.com/api/v1/docs/Home, and are accessible if logged in"""
 
     def __init__(self, cloud="us", token=None, username=None, password=None, user_token=None, apiv=1, verify=False, timeout=10):
 
@@ -38,7 +41,7 @@ class MistiFi:
         # Configure the session
         #self._config_session()
 
-        '''
+        """
         #
         # If token provided, use it to log into the Mist cloud...
         #
@@ -83,16 +86,17 @@ class MistiFi:
 
         # Reset the log level to ERROR only
         logzero.loglevel(logging.ERROR)
-        '''
+        """
+
     def comms(self):
-        '''The first method to be called to configure the session and to login to the Mist cloud.
+        """The first method to be called to configure the session and to login to the Mist cloud.
 
         It sets all the required headers.
-        '''
+        """
 
         logger.info('Calling communicate()')
 
-        logger.debug(f"Selected cloud: '{self.cloud}' >> '{cloud.upper()}'")
+        #logger.debug(f"Selected cloud: '{self.cloud}' >> '{cloud.upper()}'")
         logger.debug(f'Base URL: {self.mist_base_api_url}')
 
         # Configure the session
@@ -145,13 +149,13 @@ class MistiFi:
         logzero.loglevel(logging.ERROR)
 
     def logout(self):
-        '''Logs out of the cloud, which is not really 
+        """Logs out of the cloud, which is not really 
         needed, but avialable anyaway.
 
         Returns
         -------
         The HTTP JSON response
-        '''
+        """
         logger.info("Calling logout()")
 
         url_logout = self._resource_url(uri="/logout")
@@ -166,8 +170,8 @@ class MistiFi:
         return resp
 
     def _config_session(self):
-        '''Session configurator for headers and requests.Session()
-        '''
+        """Session configurator for headers and requests.Session()
+        """
 
         logger.info(f'Calling _config_session()')
 
@@ -191,13 +195,13 @@ class MistiFi:
         #self.session.hooks["response"] = [assert_status_hook]
 
     def _select_cloud(self, cloud):
-        '''Cloud selector, which either selects the specified 'cloud' or returns the default 'US' one.
+        """Cloud selector, which either selects the specified 'cloud' or returns the default 'US' one.
 
         Params
         ------
         cloud: `str`
-            Can be 'us' or 'eu', or 'EU'
-        '''
+            Can be 'us' or 'eu' (caps or not doesn't matter)
+        """
         logger.info("Calling _select_cloud()")
 
         try:
@@ -207,7 +211,7 @@ class MistiFi:
             return clouds["US"]
 
     def _user_login(self, login_payload):
-        '''Method to authenticate with username/password credentials. 
+        """Method to authenticate with username/password credentials. 
 
         Params:
         ------- 
@@ -217,7 +221,7 @@ class MistiFi:
         Return:
         -------
         Nothing
-        '''
+        """
         logger.info(f'Calling _user_login()')
         
         url_login = self._resource_url(uri='/login')
@@ -255,28 +259,29 @@ class MistiFi:
         logger.debug(f'Session headders should include X-CSRFTOKEN token: {self.session.headers}')
 
     def _api_call(self, method, url, **kwargs):
-        '''The API call handler.
+        """The API call handler.
 
         This method is used by `resource()`. kwargs passed in get passed to the 
         requests.session instance
 
-        Params
-        ------
+        Args
+        ----
         method: `str`
             A valid HTTP method
 
         url: `str`
             URL with the endpoint included
 
-        **kwargs: 
+        Keyword Args
+        ------------
         These are passed into the requests and include the `params` and `json` 
         attributes which are the exact same ones as used by requests.
 
         Returns:
         --------
-        The full response in JSON format including `_global_result` AND
-        The error if status string returned is not 0, else `None`.
-        '''
+        The response in JSON format if status code is below 400
+        None if status <400. Error can be seen with logging
+        """
         logger.info("Calling _api_call()")
         logger.info(f"Method is: {method.upper()}")
         logger.info(f"Calling URL: {url}")
@@ -285,50 +290,68 @@ class MistiFi:
         # This is where the call hapens
         response = getattr(self.session, method.lower())(url, **kwargs)
         resp_head = response.headers
-        jresponse = response.json()
         resp_status_code = response.status_code
+        resp_text = response.text
+
+        try:
+            jresponse = response.json()
+            logger.debug(f'The response: {jresponse}')
+        except json.decoder.JSONDecodeError:
+            pass
 
         logger.info(f"Response status code: {resp_status_code}")
-        logger.debug(f'The response: {jresponse}')
+        logger.debug(f'Response HEAD: {resp_head}')
 
         # Return nothing if status code is higher than 400
-        # And return the response text, which usually has 
-        # the reson for the failure.
         if resp_status_code >= 400:
-            logger.error(f"Response Error:\n{jresponse}")
+            logger.error(f"Response Error:\n{resp_text}")
             return None
         
         return jresponse
 
     def _resource_url(self, **kwargs):
-        '''The resource URL formatter
+        """The resource URL formatter
         
-        Will return the propperly formated url with any provided org_id, site_id, uri or parameters, or a
-        combination of all
+        Will return the propperly formated url with any provided org_id, site_id, 
+        uri or parameters, or a combination of all.
+
+        URL is returned in a Mist defines hiearachy with org_id first, then site_id,
+        then other IDs and URI
 
         Args
         ----
         org_id: `str`
-            The Organisation ID
+            The Organisation ID of a specific organisation
         site_id: `str`
-            The Site ID
+            The Site ID of a specific site
+        map_id: `str`
+            The Map ID of a specific map
+        wlan_id: `str`
+            The WLAN ID of a specific WLAN
         uri: `str`
-            The endpoint resource, e.g. '/self', or 'self', or '/self/'
-        params: dict
-            Parameters that get added to the request. These get handled by the params of requests.
+            The endpoint resource, e.g. '/self', or 'self', 
+            or '/self/' will all work
         
+        Keyword Args
+        ------------
+        various: `str`
+            Can be any additional value that will get addded to the end
+            as .../valueX, or .../valueX/valueY if more passed in
+
         Returns
         -------
         The full URL string to the requested endpoint
-        '''
+        """
         logger.info("Calling _resource_url()")
         logger.info(f"kwargs in: {kwargs}")
         
-        url = f"{self.mist_base_api_url}/api/v{self.apiv}/"
+        url = f"{self.mist_base_api_url}api/v{self.apiv}/"
 
         # Set of above parameters that will be skipped by the
         # for loop below so as to not add them again to the URL
-        known_id_names = set()
+        # 'params' are special and are passed to requests as params
+        # so they are not preocessed here.
+        known_id_names = {'params'}
 
         # List of most used kwargs
         if 'org_id' in kwargs:
@@ -347,14 +370,17 @@ class MistiFi:
             wlan_id = f"wlans/{kwargs['wlan_id']}"
             url = urljoin(url, wlan_id) + "/"
             known_id_names.add("wlan_id")
+        #if 'provider' in kwargs:
+        #    provider_id = f"oauth/{kwargs['provider']}"
+        #    url = urljoin(url, provider_id) + "/"
+        #    known_id_names.add("provider")            
         if 'uri' in kwargs:
-            url = urljoin(url, kwargs['uri'].strip('/'))# + "/"
+            url = urljoin(url, kwargs['uri'].strip('/'))
             known_id_names.add("uri")
+        if 'apitoken_id' in kwargs:
+            url = urljoin(url, kwargs['apitoken_id']) + "/"
+            known_id_names.add("apitoken_id")
 
-        # 'params' are special nd are passed to requests as params
-        # So to no not be preocessed here, they are put into 
-        # known id names
-        known_id_names.add("params")
 
         # Add to URL parameters from kwargs and skip the 
         # ones that are in known_id_names
@@ -368,17 +394,30 @@ class MistiFi:
             if isinstance(v, str):
                 url = urljoin(f'{url}/', v.lstrip("/"))
 
-        # Remove the last '/' if in the url as the call
+        # Remove the last '/' if in the URL as the call
         # won't work with it.
-        if url[-1] == "/":
-            url = url[:-1]
-
+        url = url.rstrip('/')
         logger.debug(f"URL to endpoint: {url}")
 
         return url
 
     def _params(self, **kwargs):
+        """Parameters configurator for passing into the requests module
 
+        Meant for parameters that get passed with the `params` attribute of 
+        requests.
+        
+        Keyword Args:
+        -------------
+        params: `dict`
+            A dict of keyword arguments that gets passed as params
+            to the requests
+
+        Returns:
+        --------
+        params: `dict`
+            The params dict of parameters to be passed with the requets params attribute
+        """
         logger.info("Calling _params()")
         logger.info(f"kwargs in: {kwargs}")
 
@@ -392,7 +431,34 @@ class MistiFi:
         return params
 
     def resource(self, method, jpayload=None, **kwargs):
+        """Actiones the HTTP request type defined with the `method`.
 
+        This is the main function of the class, which does all the interfacing 
+        with the API. It can be called by its own with a valid HTTP method,
+        but the preffered way is to define a resource method below that utilises
+        this one for interfacing. The difference between the 2 apporoaches is 
+        shown in the Examples.
+        
+        Args:
+        -----
+        method: `str`
+            Either `GET` or `POST`. Case insensitive.    
+        jpayload: dict, optional
+            JSON formated payload. Same as requests json sent with the body of 
+            the request.
+
+        Keyword Args
+        ------------
+        These get passed to the `_params()` and `_resource_url()` methods, so read 
+        what is accepted there.
+
+        Returns:
+        --------
+        The JSON response with either the sucesfull response or the error response.
+
+        Examples:
+        ---------
+        """
         logger.info("Calling resource()")
         logger.debug(f'kwargs in: {kwargs}')
         
@@ -411,28 +477,98 @@ class MistiFi:
         return jresp
 
     def whoami(self, method='GET', **kwargs):
+        """For accessing '/self' enpoint.
 
+        The URI inside the function is '/self' which gets
+        added to the URL at the end
+
+        Args
+        ----
+        method: str, default 'GET'
+            A valid HTTP method
+
+        Keyword Args
+        ------------
+        As defined with the _params() and _resource_url() methods
+
+        Returns
+        -------
+        The JSON response from the resource() method
+        """
         logger.info('Calling whoami()')
         logger.info(f'kwargs in: {kwargs}')
 
-        kwargs['uri'] = f'/self'
+        kwargs['uri'] = '/self'
 
         return self.resource(method, **kwargs)
 
-    def wlans(self, method='GET', data=None, **kwargs):
-        #   /api/v1/sites/:site_id/wlans
-        #   /api/v1/sites/:site_id/wlans/:wlan_id/
-        #   /api/v1/sites/:site_id/wlans/:wlan_id/parameter << POST, DELETE, PUT
-        #   /api/v1/sites/:site_id/wlans/derived
-        #   /api/v1/sites/:site_id/wlans/derived?resolve=false
 
+    def apitokens(self, method="GET", **kwargs):
+        """For managing API tokens.
+
+        The URI inside the function is '/self/apitokens' which gets
+        added to the URL at the end.
+
+        If run without any kwrgs it returns a list of all API tokens.
+        If passing in the 'apitoken_id' method is DELETE and that id gets
+        deleted.
+
+        Args
+        ----
+        method: str, default 'GET'
+            A valid HTTP method.
+            If kwrgs contains 'apitoken_id', the method changes to DELETE. 
+
+        Keyword Args
+        ------------
+        As defined with the _params() and _resource_url() methods
+
+        Returns
+        -------
+        The JSON response from the resource() method
+        """
+        logger.info('Calling whoami()')
+        logger.info(f'kwargs in: {kwargs}')
+
+        # API tokens are unred /self
+        kwargs['uri'] = '/self/apitokens'
+
+        # If we pass in the toklen ID the method
+        # can only be DELETE
+        if 'apitoken_id' in kwargs:
+            method = "DELETE"
+
+        return self.resource(method, **kwargs)
+
+
+
+    def wlans(self, method='GET', jdata=None, **kwargs):
+        """For accessing '/wlans' enpoint.
+
+        The URI inside the function is '/wlans' which gets
+        added to the URL at the end
+
+        Args
+        ----
+        method: str, default 'GET'
+            A valid HTTP method
+        jdata: dict, default None
+
+        Keyword Args
+        ------------
+        As defined with the _params() and _resource_url() methods
+
+        Returns
+        -------
+        The JSON response from the resource() method
+        """
         logger.info('Calling wlans()')
         logger.info(f'kwargs in: {kwargs}')
 
         if not 'wlan_id' in kwargs:
             kwargs['uri'] = f'/wlans'
 
-        return self.resource(method, jpayload=data, **kwargs)
+        return self.resource(method, jpayload=jdata, **kwargs)
 
 
 

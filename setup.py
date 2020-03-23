@@ -21,6 +21,5 @@ setup(
         'requests',
         'PyYAML',
         'logzero',
-        'urllib'
     ],
 )

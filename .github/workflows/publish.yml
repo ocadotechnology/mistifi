@@ -29,6 +29,7 @@ jobs:
     - name: Setup venv with pipenv
       run: |
         pip3 install pipenv
+        pipenv --python 3
         pipenv shell
 
     - name: Test with pytest

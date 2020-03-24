@@ -1,13 +1,14 @@
-workflows:
-  build_test_and_deploy:
-    jobs:
-      - build
-      #- deploy:
-      #    requires:
-      #      - build
-      #    filters:
-      #      branches:
-      #        only: master
+---
+#workflows:
+#  build_test_and_deploy:
+#    jobs:
+#      - build
+#      #- deploy:
+#      #    requires:
+#      #      - build
+#      #    filters:
+#      #      branches:
+#      #        only: master
 jobs:
   build:
     name: Build stage

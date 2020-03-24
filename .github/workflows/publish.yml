@@ -26,11 +26,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v1
 
-    - name: Setup venv with pipenv
-      run: |
-        pip3 install pipenv
-        pipenv --python 3.6
-        pipenv shell
+    #- name: Setup a virtual env
+    #  run: |
+    #    pip3 install virtualenv
+    #    virtualenv venv
+    - name: Build dependancies
+      run: pip install -r requirements.txt
 
     - name: Test with pytest
       run: |

@@ -85,7 +85,7 @@ class MistiFi:
         self.csrftoken = None
         self.mist_base_api_url = f'https://{self.cloud}/'
 
-"""
+    """
         # Configure the session
         #self._config_session()
 

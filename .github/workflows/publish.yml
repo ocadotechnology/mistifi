@@ -1,7 +1,7 @@
 # This workflows will upload a Python Package using Twine when a release is created
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
 
-name: Upload Python Package
+name: Managing the package
 
 on: 
   push:
@@ -9,13 +9,29 @@ on:
       - build
       - test
   release:
+    jobs:
+      - deploy
     tags: 
       - 0.*
       - 1.*
     types: [created]
 
 jobs:
+  test:
+    name: Test the module
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v1
+
+   - name: Test with pytest
+      run: |
+        pip install pytest
+        pytest
   deploy:
+    name: Deploy to PyPi
     runs-on: ubuntu-latest
 
     steps:

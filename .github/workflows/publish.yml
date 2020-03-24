@@ -33,7 +33,7 @@ jobs:
       run: pytest
 
     - name: Build the module
-      run: python setup.py sdist bdist_wheel
+      run: python setup.py sdist
 
     - name: Install localy
       run: pip install -e .

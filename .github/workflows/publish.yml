@@ -17,8 +17,8 @@ on:
     types: [created]
 
 jobs:
-  test:
-    name: Test the module
+  build_and_test:
+    name: Build and Test the module
     runs-on: ubuntu-latest
 
     steps:
@@ -26,17 +26,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v1
 
-    #- name: Setup a virtual env
-    #  run: |
-    #    pip3 install virtualenv
-    #    virtualenv venv
     - name: Build dependancies
       run: pip install -r requirements.txt
 
     - name: Test with pytest
-      run: |
-        #pipenv install pytest
-        pytest
+      run: pytest
+
+  # Deploy it to PyPi
   deploy:
     name: Deploy to PyPi
     runs-on: ubuntu-latest

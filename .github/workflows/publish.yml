@@ -6,7 +6,7 @@ name: Upload Python Package
 on: 
   push:
     branchess:
-      - **
+      - refs/heads/*
     jobs:
       - build
       - test

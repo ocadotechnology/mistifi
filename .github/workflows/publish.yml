@@ -26,10 +26,15 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v1
 
+    - name: Setup venv with pipenv
+      run: |
+        pip3 install pipenv
+        pipenv shell
+
     - name: Test with pytest
       run: |
-        pip install pytest
-        pytest tests/test_mist.py
+        pip3 install pytest
+        pytest
   deploy:
     name: Deploy to PyPi
     runs-on: ubuntu-latest

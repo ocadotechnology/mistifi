@@ -11,3 +11,5 @@ pyvenv.cfg
 .DS_Store
 cp_dbs_tables.txt
 dist/
+build
+mistifi-*

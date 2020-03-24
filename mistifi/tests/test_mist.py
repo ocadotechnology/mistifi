@@ -5,10 +5,6 @@ import responses
 import requests
 import unittest
 
-import logging
-import logzero
-from logzero import logger
-
 sys.path.append(os.path.dirname(__file__) + '../')
 #print(sys.path)
 
@@ -21,7 +17,6 @@ LOGIN_URL = 'https://api.mist.com/api/v1/login'
 class TestMistiFi(unittest.TestCase):
     '''Test class for testing Mist APIs.
     '''
-    #logzero.loglevel(logging.ERROR)
 
     @responses.activate
     def setUp(self):

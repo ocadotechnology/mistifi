@@ -23,25 +23,72 @@ clouds = {
 logzero.loglevel(logging.ERROR)
 
 class MistiFi:
-    """All Mist API uris are found on https://api.mist.com/api/v1/docs/Home, and are accessible if logged in"""
+    """All Mist API URIs are found on https://api.mist.com/api/v1/docs/Home, 
+    and are accessible if logged in
 
-    def __init__(self, cloud="us", token=None, username=None, password=None, user_token=None, apiv=1, verify=False, timeout=10):
+    Parameters
+    ----------
+    cloud: `str`, optional, default: 'US'
+        Either "US" or "EU" for either 'api.mist.com' or 'api.eu.mist.com'
+        clouds respectively
 
+    token: `str`, optional
+        A user's token for accessing the selected cloud (cloud specific).
+
+    username: `str`, optional, default: None
+        Username for the selected cloud (cloud specific).
+
+    password: `str`, optional, default: None
+        Password for the selected cloud (cloud specific).
+
+    apiv: `str`, optional, default: 1
+        The API version used for the calls. 
+
+    verify: `bool`, optional, default: False
+        Same as requests verify, but defaults to False as most MM 
+        implementations are expected to not use certs. Either a boolean, in 
+        which case it controls whether we verify the server’s TLS 
+        certificate, or a string, in which case it must be a path to a CA 
+        bundle to use.
+
+    timeout: `int`, optional, default: 10
+        The timeout for the connection.
+
+    Examples:
+    ---------
+    **Ex. 1:** Use with a token
+    
+    >>> mist = MMClient(token="thetoken")
+    >>> mist.comms()
+    
+    **Ex. 2:** Usage without the token.
+
+    In this case you are asked for username and password or you can
+    provide one or both when creating a new instance.
+
+    >>> mist = MMClient(username="theuser")
+    >>> mist.comms()
+    """
+
+    def __init__(self, cloud="us", token="", username="", password="", apiv="1", verify=False, timeout=10):
+
+        # Constructor attributes
+        self.cloud = self._select_cloud(cloud)
         self.token = token
         self.username = username
         self.password = password
-        self.user_token = user_token
+        self.apiv = apiv
         self.verify = bool(verify)
         self.timeout = abs(timeout)
-        self.apiv = apiv
+
+        # Other class attributes used later
         self.csrftoken = None
-        self.cloud = self._select_cloud(cloud)
         self.mist_base_api_url = f'https://{self.cloud}/'
 
+"""
         # Configure the session
         #self._config_session()
 
-        """
         #
         # If token provided, use it to log into the Mist cloud...
         #
@@ -150,7 +197,7 @@ class MistiFi:
 
     def logout(self):
         """Logs out of the cloud, which is not really 
-        needed, but avialable anyaway.
+        needed, but available anyway.
 
         Returns
         -------
@@ -197,8 +244,8 @@ class MistiFi:
     def _select_cloud(self, cloud):
         """Cloud selector, which either selects the specified 'cloud' or returns the default 'US' one.
 
-        Params
-        ------
+        Args
+        ----
         cloud: `str`
             Can be 'us' or 'eu' (caps or not doesn't matter)
         """
@@ -213,8 +260,8 @@ class MistiFi:
     def _user_login(self, login_payload):
         """Method to authenticate with username/password credentials. 
 
-        Params:
-        ------- 
+        Args
+        ---- 
         login_payload: dict
             A dict with username and password credentials
         
@@ -231,11 +278,11 @@ class MistiFi:
         #url_login = self._resource_url(org_id=":org_id", site_id=':site_id', uri='/uri')
         #url_login = self._resource_url(org_id=":org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
         #url_login = self._resource_url(org_id="/:org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',site_id=':site_id', uri='/uri')
+        #url_login = self._resource_url(something='/:sdkinvite_id/email',site_id=':site_id', uri='/uri')
         #url_login = self._resource_url(collection='/:collection',object_id=':obj_id',site_id=':site_id')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',org_id=':org_id', uri='/uri')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email',org_id=":org_id", site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(somthing='/:sdkinvite_id/email', blah="/blah", org_id=":org_id", site_id=':site_id', uri='/uri')
+        #url_login = self._resource_url(something='/:sdkinvite_id/email',org_id=':org_id', uri='/uri')
+        #url_login = self._resource_url(something='/:sdkinvite_id/email',org_id=":org_id", site_id=':site_id', uri='/uri')
+        #url_login = self._resource_url(something='/:sdkinvite_id/email', blah="/blah", org_id=":org_id", site_id=':site_id', uri='/uri')
         #exit(0)
 
         # Login with or without the 2 factor token
@@ -253,10 +300,10 @@ class MistiFi:
         try:
             self.session.headers['X-CSRFTOKEN'] = resp_csrftoken
         except KeyError:
-            logger.exception("'Set-Cookie' not in headder response")
+            logger.exception("'Set-Cookie' not in header response")
             return
 
-        logger.debug(f'Session headders should include X-CSRFTOKEN token: {self.session.headers}')
+        logger.debug(f'Session headers should include X-CSRFTOKEN token: {self.session.headers}')
 
     def _api_call(self, method, url, **kwargs):
         """The API call handler.
@@ -312,16 +359,16 @@ class MistiFi:
     def _resource_url(self, **kwargs):
         """The resource URL formatter
         
-        Will return the propperly formated url with any provided org_id, site_id, 
+        Will return the properly formated URL with any provided org_id, site_id, 
         uri or parameters, or a combination of all.
 
-        URL is returned in a Mist defines hiearachy with org_id first, then site_id,
+        URL is returned in a Mist defines hierarchy with org_id first, then site_id,
         then other IDs and URI
 
         Args
         ----
         org_id: `str`
-            The Organisation ID of a specific organisation
+            The Organization ID of a specific organization
         site_id: `str`
             The Site ID of a specific site
         map_id: `str`
@@ -335,7 +382,7 @@ class MistiFi:
         Keyword Args
         ------------
         various: `str`
-            Can be any additional value that will get addded to the end
+            Can be any additional value that will get added to the end
             as .../valueX, or .../valueX/valueY if more passed in
 
         Returns
@@ -350,7 +397,7 @@ class MistiFi:
         # Set of above parameters that will be skipped by the
         # for loop below so as to not add them again to the URL
         # 'params' are special and are passed to requests as params
-        # so they are not preocessed here.
+        # so they are not precessed here.
         known_id_names = {'params'}
 
         # List of most used kwargs
@@ -477,7 +524,7 @@ class MistiFi:
         return jresp
 
     def whoami(self, method='GET', **kwargs):
-        """For accessing '/self' enpoint.
+        """For manipulating '/self' enpoint.
 
         The URI inside the function is '/self' which gets
         added to the URL at the end
@@ -502,14 +549,13 @@ class MistiFi:
 
         return self.resource(method, **kwargs)
 
-
     def apitokens(self, method="GET", **kwargs):
         """For managing API tokens.
 
         The URI inside the function is '/self/apitokens' which gets
         added to the URL at the end.
 
-        If run without any kwrgs it returns a list of all API tokens.
+        If run without any kwargs it returns a list of all API tokens.
         If passing in the 'apitoken_id' method is DELETE and that id gets
         deleted.
 
@@ -517,7 +563,7 @@ class MistiFi:
         ----
         method: str, default 'GET'
             A valid HTTP method.
-            If kwrgs contains 'apitoken_id', the method changes to DELETE. 
+            If kwargs contains 'apitoken_id', the method changes to DELETE. 
 
         Keyword Args
         ------------
@@ -530,7 +576,7 @@ class MistiFi:
         logger.info('Calling whoami()')
         logger.info(f'kwargs in: {kwargs}')
 
-        # API tokens are unred /self
+        # API tokens are under /self
         kwargs['uri'] = '/self/apitokens'
 
         # If we pass in the toklen ID the method
@@ -540,10 +586,8 @@ class MistiFi:
 
         return self.resource(method, **kwargs)
 
-
-
     def wlans(self, method='GET', jdata=None, **kwargs):
-        """For accessing '/wlans' enpoint.
+        """For manipulating '/wlans' endpoint.
 
         The URI inside the function is '/wlans' which gets
         added to the URL at the end

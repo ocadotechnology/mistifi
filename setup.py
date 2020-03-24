@@ -6,20 +6,24 @@ import versioneer
 
 
 setup(
-    name                 = 'mistyfi',
+    name                 = 'mistifi',
     version              = versioneer.get_version(),
     cmdclass             = versioneer.get_cmdclass(),
-    description          = 'Mist Python library',
+    description          = 'Mist API Python module',
     long_description     = 'A Mist API client',
     author               = 'Primoz Marinsek',
-    author_email         = 'net-wifi@ocado.com',
+    author_email         = 'primoz.marinsek@ocado.com',
     maintainer           = 'Primoz Marinsek',
     maintainer_email     = 'primoz.marinsek@ocado.com',
     packages             = find_packages(),
     include_package_data = True,
     install_requires     = [
         'requests',
-        'PyYAML',
+        'logzero',
+    ],
+    tests_require        = [
+        'requests',
+        'responses',
         'logzero',
     ],
 )

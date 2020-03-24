@@ -10,8 +10,8 @@ workflows:
             branches:
               only: master
 jobs:
-  runs-on: ubuntu-latest
   build:
+    runs-on: ubuntu-latest
     working_directory: ~/repo
     steps:
       - checkout

@@ -28,8 +28,8 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pip install pytest pytest-cov
-        pytest
+        pip install pytest
+        pytest tests/test_mist.py
   deploy:
     name: Deploy to PyPi
     runs-on: ubuntu-latest

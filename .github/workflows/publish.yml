@@ -29,12 +29,12 @@ jobs:
     - name: Setup venv with pipenv
       run: |
         pip3 install pipenv
-        pipenv --python 3
+        pipenv --python 3.6
         pipenv shell
 
     - name: Test with pytest
       run: |
-        pip3 install pytest
+        #pipenv install pytest
         pytest
   deploy:
     name: Deploy to PyPi

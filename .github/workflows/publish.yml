@@ -32,6 +32,11 @@ jobs:
     - name: Test with pytest
       run: pytest
 
+    - name: Build the module
+      run: python setup.py sdist bdist_wheel
+
+    - name: Install localy
+      run: pip install -e .
   # Deploy it to PyPi
   deploy:
     name: Deploy to PyPi

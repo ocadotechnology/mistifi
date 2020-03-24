@@ -3,12 +3,19 @@
 
 name: Upload Python Package
 
-#on: [push]
-    #types: [created]
+on: 
+  push:
+    branchess:
+      - **
+    jobs:
+      - build
+      - test
+  release:
+    tags: *
+    types: [created]
 
 jobs:
   deploy:
-    on: [push]
     runs-on: ubuntu-latest
 
     steps:

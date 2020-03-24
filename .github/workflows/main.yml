@@ -11,6 +11,8 @@ workflows:
               only: master
 jobs:
   build:
+    name: Build stage
+    runs-on: "ubuntu-latest"
     working_directory: ~/repo
     steps:
       - name: install dependencies

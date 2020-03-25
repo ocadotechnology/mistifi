@@ -5,12 +5,17 @@ name: Managing the package
 
 on: 
   push:
+    branches: '**'
     jobs:
       - build
       - test
-  tags:
+  release:
     jobs:
       - deploy
+    tags: 
+      - 0.*
+      - 1.*
+    types: [created]
 
 jobs:
   

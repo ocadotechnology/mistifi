@@ -8,13 +8,11 @@ on:
     #branches: '!master'
     jobs:
       - build_and_test
-  release:
+  create:
+    tags: 
+      - *
     task:
       - deploy
-    tags: 
-      - 0.*
-      - 1.*
-    types: [completed]
 
 jobs:
   

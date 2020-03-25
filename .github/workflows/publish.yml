@@ -5,10 +5,9 @@ name: Managing the package
 
 on: 
   push:
-    branches: '!master'
+    #branches: '!master'
     jobs:
-      - build
-      - test
+      - build_and_test
   release:
     jobs:
       - deploy

@@ -9,6 +9,7 @@ on:
     jobs:
       - build_and_test
   release:
+    only: tags
     task:
       - deploy
     tags: 

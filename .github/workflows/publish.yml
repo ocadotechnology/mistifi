@@ -17,12 +17,14 @@ on:
     types: [created]
 
 jobs:
+  
   build_and_test:
     name: Build and Test the module
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+    
     - name: Set up Python
       uses: actions/setup-python@v1
 
@@ -37,10 +39,12 @@ jobs:
 
     - name: Install localy
       run: pip install -e .
+
   # Deploy it to PyPi
   deploy:
     name: Deploy to PyPi
     runs-on: ubuntu-latest
+    with: tags
 
     steps:
     - uses: actions/checkout@v2

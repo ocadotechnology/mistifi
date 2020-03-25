@@ -13,3 +13,4 @@ cp_dbs_tables.txt
 dist/
 build
 mistifi-*
+.tox/

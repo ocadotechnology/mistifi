@@ -22,9 +22,10 @@ setup(
         'responses',
         'logzero',
     ],
-    #tests_require        = [
-    #    'requests',
-    #    'responses',
-    #    'logzero',
-    #],
+    tests_require        = [
+        'requests',
+        'responses',
+        'logzero',
+        'pytest',
+    ],
 )

@@ -9,10 +9,9 @@ on:
     jobs:
       - build_and_test
   create:
-    tags: 
-      - '*'
-        jobs:
-          - deploy
+    tags: '*'
+      jobs:
+        - deploy
 
 jobs:
   

@@ -11,8 +11,8 @@ on:
   create:
     tags: 
       - '*'
-    jobs:
-      - deploy
+    #jobs:
+    #  - deploy
 
 jobs:
   

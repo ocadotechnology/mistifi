@@ -9,8 +9,12 @@ on:
     jobs:
       - build_and_test
   release:
-    only: 
-      - tags
+    task:
+      - deploy
+    tags: 
+      - 0.*
+      - 1.*
+    types: [completed]
 
 jobs:
   
@@ -41,6 +45,8 @@ jobs:
   deploy:
     name: Deploy to PyPi
     needs: build_and_test
+    only: 
+      - tags
     runs-on: ubuntu-latest
 
     steps:

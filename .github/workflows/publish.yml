@@ -14,7 +14,7 @@ on:
     tags: 
       - 0.*
       - 1.*
-    types: [created]
+    types: [completed]
 
 jobs:
   

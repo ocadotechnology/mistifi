@@ -43,6 +43,7 @@ jobs:
   # Deploy it to PyPi
   deploy:
     name: Deploy to PyPi
+    needs: build_and_test
     runs-on: ubuntu-latest
 
     steps:

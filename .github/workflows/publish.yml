@@ -8,13 +8,9 @@ on:
     jobs:
       - build
       - test
-  release:
+  tags:
     jobs:
       - deploy
-    tags: 
-      - 0.*
-      - 1.*
-    types: [created]
 
 jobs:
   
@@ -44,7 +40,6 @@ jobs:
   deploy:
     name: Deploy to PyPi
     runs-on: ubuntu-latest
-    with: tags
 
     steps:
     - uses: actions/checkout@v2

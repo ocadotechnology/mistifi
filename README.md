@@ -58,17 +58,30 @@ An alternative with specifying the EU cloud would be.
 ```python
 >>> mist = MMClient(cloud="EU", token="thetoken")
 ```
+The token always has preference before username/password or other option, so in the below example a token would be used.
+```python
+>>> mist = MMClient(, token="thetoken", username="theuser@mistifi.com", password="thepass")
+```
 
-**Usage without the token.**
+**Ex. 2: Using username and password.**
 
-In this case you are asked for username and password or you can provide one or both or neither when creating a new instance.
+Currently 2FA and OAUTH aren't supported.
 
+The minimum required for this option is to create an instance without any attributes like below.
 ```python
 >>> mist = MMClient()
 ```
+In this case you are asked for username and password.
+
+You can provide one or both when creating a new instance and be asked about the other once the `comms()` method is tun
 
 ```python
 >>> mist = MMClient(cloud='us', username="theuser@mistifi.com")
 ```
-Currently 2FA and OAUTH aren't supported.
+
+## Communicating with the cloud
+Once the cloud and authentication options are selected you must run the `comms()` method which correctly sets up the headers depending on the authentication method used. For example `X-CSRFTOKEN` is setup for the username/password option.
+```python
+>>> mist = comms()
+```
 

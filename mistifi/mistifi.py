@@ -525,6 +525,10 @@ class MistiFi:
 
         return jresp
 
+    #
+    ## Here are defined resource methods that interface with a specific endpoint.
+    #
+    
     def whoami(self, method='GET', **kwargs):
         """Resource method for manipulating '/self' endpoint.
 

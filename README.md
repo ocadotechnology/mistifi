@@ -86,30 +86,34 @@ Once the cloud and authentication options are selected you must run the `comms()
 ```
 
 ## Interfacing with the cloud URIs
-If a specific resource method for a specific URI is not defined the main method that can be used is the `resource()` one.
+If a specific resource method for a specific URI is not defined the main method that can be used is the `resource()` one. The resource methods defined start with `Resource method` in the docstring.
 
+For example, GET-ing `/self` can be achieved by either the `resource()` method or the `whoami()` one.
+```python
+>>> whoami = mist_user.whoami()
+>>> rwhoami = mist_user.resource("GET", uri="/self")
+>>> print(whoami == rwhoami)
+True
+```
 
 # Debugging 
 
 The default debug level is `ERROR`, which can be changed per method call by preempting it with `logzero.loglevel(logging.LEVEL)` where `LEVEL` is the debug level.
+Each method then resets logging to `ERROR`, so you need to set logging level before each one.
 
 **Ex. 1: DEBUG level**
 ```python
 >>> logzero.loglevel(logging.DEBUG)
 >>> mist_user.whoami()
 ```
-```data
+```
 [I 200326 14:48:17 mistifi:547] Calling whoami()
 [I 200326 14:48:17 mistifi:548] kwargs in: {}
 [I 200326 14:48:17 mistifi:511] Calling resource()
 [D 200326 14:48:17 mistifi:512] kwargs in: {'uri': '/self'}
-```
-``` markup
 [I 200326 14:48:17 mistifi:471] Calling _params()
 [I 200326 14:48:17 mistifi:472] kwargs in: {'uri': '/self'}
 [D 200326 14:48:17 mistifi:479] Returned params: {}
-```
-```prose
 [I 200326 14:48:17 mistifi:395] Calling _resource_url()
 [I 200326 14:48:17 mistifi:396] kwargs in: {'uri': '/self'}
 [D 200326 14:48:17 mistifi:450] URL to endpoint: https://api.mist.com/api/v1/self
@@ -123,8 +127,35 @@ The default debug level is `ERROR`, which can be changed per method call by pree
 ```
 
 **Ex. 2: INFO level**
+```python
+>>> logzero.loglevel(logging.INFO)
+>>> mist_user.whoami()
+```
+```
+[I 200326 14:58:23 mistifi:547] Calling whoami()
+[I 200326 14:58:23 mistifi:548] kwargs in: {}
+[I 200326 14:58:23 mistifi:511] Calling resource()
+[I 200326 14:58:23 mistifi:471] Calling _params()
+[I 200326 14:58:23 mistifi:472] kwargs in: {'uri': '/self'}
+[I 200326 14:58:23 mistifi:395] Calling _resource_url()
+[I 200326 14:58:23 mistifi:396] kwargs in: {'uri': '/self'}
+[I 200326 14:58:23 mistifi:333] Calling _api_call()
+[I 200326 14:58:23 mistifi:334] Method is: GET
+[I 200326 14:58:23 mistifi:335] Calling URL: https://api.mist.com/api/v1/self
+[I 200326 14:58:23 mistifi:346] Response status code: 200
+```
 
-Each method then resets logging to `ERROR`, so you need to set logging level before each one.
+**Ex. 3: Examples of error output**
+Here no log level was set.
+```python
+>>> mist_user.whoami()
+```
+```
+[E 200326 14:58:24 mistifi:351] Response Error:
+    {"detail":"Method \"GET\" not allowed."}
+[E 200326 14:58:24 mistifi:351] Response Error:
+    {"detail":"CSRF Failed: CSRF token missing or incorrect."}
+```
 
 
 

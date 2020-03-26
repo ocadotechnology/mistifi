@@ -157,10 +157,16 @@ Here no log level was set.
     {"detail":"CSRF Failed: CSRF token missing or incorrect."}
 ```
 
+# Contributing
+Thank you for helping us develop Mistifi. We're happy to accept contribution of any kind. Feel free to submit feature requests and bug reports under Issues.
 
+## Submitting a pull request guidelines
 
-
-
+- All pull requests require a code review.
+- Any merge conflicts needs to be resolved.
+- Include unit tests when you contribute new features and bugs, as they help to a) prove that your code works correctly, and b) guard against future breaking changes to lower the maintenance cost.
+- All tests needs to pass before we will review your PR.
+- When you respond to changes based on comments from a code review, please reply with "Done." so that we get a notification.
 
 
 

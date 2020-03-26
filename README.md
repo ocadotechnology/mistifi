@@ -98,14 +98,18 @@ The default debug level is `ERROR`, which can be changed per method call by pree
 >>> logzero.loglevel(logging.DEBUG)
 >>> mist_user.whoami()
 ```
-```programming
+```data
 [I 200326 14:48:17 mistifi:547] Calling whoami()
 [I 200326 14:48:17 mistifi:548] kwargs in: {}
 [I 200326 14:48:17 mistifi:511] Calling resource()
 [D 200326 14:48:17 mistifi:512] kwargs in: {'uri': '/self'}
+```
+``` markup
 [I 200326 14:48:17 mistifi:471] Calling _params()
 [I 200326 14:48:17 mistifi:472] kwargs in: {'uri': '/self'}
 [D 200326 14:48:17 mistifi:479] Returned params: {}
+```
+```prose
 [I 200326 14:48:17 mistifi:395] Calling _resource_url()
 [I 200326 14:48:17 mistifi:396] kwargs in: {'uri': '/self'}
 [D 200326 14:48:17 mistifi:450] URL to endpoint: https://api.mist.com/api/v1/self

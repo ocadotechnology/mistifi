@@ -165,8 +165,7 @@ class MistiFi:
 
             # Get the username
             if not self.username:
-                input("Username:\x20")
-                self.username = getpass.getuser()
+                self.username = input("Username (email):\x20")
 
             self.login_payload['email'] = self.username
 
@@ -263,6 +262,8 @@ class MistiFi:
         ------
             None
         """
+        error_resp = {'err': True}
+
         logger.info(f'Calling _user_login()')
         
         url_login = self._resource_url(uri='/login')
@@ -272,14 +273,28 @@ class MistiFi:
 
         # The headers and cookies in the response
         resp_head = resp.headers
-        resp_csrftoken = resp.cookies['csrftoken']
+        resp_status_code = resp.status_code
+        resp_text = resp.text
 
         logger.info(f'Login response code: {resp.status_code}')
         logger.debug(f'Response HEAD: {resp_head}')
+
+        # Return nothing if status code is higher than 400
+        if resp_status_code != 200:
+            error_resp['detail'] = json.loads(resp_text)['detail']
+            logger.error(f"Response Error:\n{error_resp}")
+            exit(0)
+        # Otherwise return the JSON response
+        else:
+            jresponse = resp.json()
+            logger.debug(f'Response HEAD: {resp_head}')
+            logger.debug(f'The response: {jresponse}')
+            return jresponse
         
         # Need to update the headers with the CSRF token to be able
         # to POST, PUT or DELETE in further requests
         try:
+            resp_csrftoken = resp.cookies['csrftoken']
             self.session.headers['X-CSRFTOKEN'] = resp_csrftoken
         except KeyError:
             logger.exception("'Set-Cookie' not in header response")
@@ -311,6 +326,10 @@ class MistiFi:
         The response in JSON format if status code is below 400
         None if status >=400. Error can be seen with logging
         """
+        # Maybe I should return this if code !=200????
+        # Figure it out later
+        error_resp = {'err': True}
+
         logger.info("Calling _api_call()")
         logger.info(f"Method is: {method.upper()}")
         logger.info(f"Calling URL: {url}")
@@ -328,8 +347,9 @@ class MistiFi:
 
         # Return nothing if status code is higher than 400
         if resp_status_code >= 400:
+            error_resp['detail'] = json.loads(resp_text)['detail']
             logger.error(f"Response Error:\n{resp_text}")
-            return None
+            return
         # Otherwise return the JSON response
         else:
             jresponse = response.json()

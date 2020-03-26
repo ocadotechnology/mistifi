@@ -73,7 +73,7 @@ The minimum required for this option is to create an instance without any attrib
 ```
 In this case you are asked for username and password.
 
-You can provide one or both when creating a new instance and be asked about the other once the `comms()` method is tun
+You can provide one or both when creating a new instance and be asked about the other once the `comms()` method is run.
 
 ```python
 >>> mist = MMClient(cloud='us', username="theuser@mistifi.com")
@@ -84,4 +84,51 @@ Once the cloud and authentication options are selected you must run the `comms()
 ```python
 >>> mist = comms()
 ```
+
+## Interfacing with the cloud URIs
+If a specific resource method for a specific URI is not defined the main method that can be used is the `resource()` one.
+
+
+# Debugging 
+
+The default debug level is `ERROR`, which can be changed per method call by preempting it with `logzero.loglevel(logging.LEVEL)` where `LEVEL` is the debug level.
+
+**Ex. 1: DEBUG level**
+```python
+>>> logzero.loglevel(logging.DEBUG)
+>>> mist_user.whoami()
+```
+```Shell
+[I 200326 14:48:17 mistifi:547] Calling whoami()
+[I 200326 14:48:17 mistifi:548] kwargs in: {}
+[I 200326 14:48:17 mistifi:511] Calling resource()
+[D 200326 14:48:17 mistifi:512] kwargs in: {'uri': '/self'}
+[I 200326 14:48:17 mistifi:471] Calling _params()
+[I 200326 14:48:17 mistifi:472] kwargs in: {'uri': '/self'}
+[D 200326 14:48:17 mistifi:479] Returned params: {}
+[I 200326 14:48:17 mistifi:395] Calling _resource_url()
+[I 200326 14:48:17 mistifi:396] kwargs in: {'uri': '/self'}
+[D 200326 14:48:17 mistifi:450] URL to endpoint: https://api.mist.com/api/v1/self
+[I 200326 14:48:17 mistifi:333] Calling _api_call()
+[I 200326 14:48:17 mistifi:334] Method is: GET
+[I 200326 14:48:17 mistifi:335] Calling URL: https://api.mist.com/api/v1/self
+[D 200326 14:48:17 mistifi:336] With headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}
+[I 200326 14:48:18 mistifi:346] Response status code: 200
+[D 200326 14:48:18 mistifi:356] Response HEAD: {'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Origin': 'https://manage.mist.com', 'Access-Control-Expose-Headers': 'X-CSRFTOKEN,X-Requested-With,X-Page-Page,X-Page-Total', 'Allow': 'GET, OPTIONS, DELETE, PUT', 'Cache-Control': 'no-cache, no-store', 'Content-Type': 'application/json', 'Date': 'Thu, 26 Mar 2020 14:48:18 GMT', 'Pragma': 'no-cache', 'Server': 'gunicorn/19.10.0', 'Set-Cookie': 'sessionid=8trv1zr79sknwk0n7sz2pim8x26g84mh; Domain=.mist.com; expires=Fri, 27-Mar-2020 14:48:18 GMT; HttpOnly; Max-Age=86400; Path=/; Secure', 'Vary': 'Origin', 'Via': 'kong/0.9.3', 'X-Frame-Options': 'SAMEORIGIN', 'X-Kong-Proxy-Latency': '0', 'X-Kong-Upstream-Latency': '39', 'Content-Length': '608', 'Connection': 'keep-alive'}
+[D 200326 14:48:18 mistifi:357] The response: {'email': 'net-wifi@ocado.com', 'first_name': 'net', 'last_name': 'wifi', 'tags': ['mist-customer'], 'session_expiry': 1440, 'privileges': [{'scope': 'msp', 'msp_id': 'd70b3ef3-7c20-4826-b16d-18935792ce7a', 'role': 'admin', 'name': 'Ocado MSP'}, {'scope': 'org', 'org_id': '93a28cf5-2b40-40a7-97d3-05ed23f43682', 'role': 'admin', 'name': 'Ocado Testing', 'msp_id': 'd70b3ef3-7c20-4826-b16d-18935792ce7a', 'msp_name': 'Ocado MSP', 'orggroup_ids': []}, {'scope': 'org', 'org_id': '1e43492c-0620-406e-8c4b-aa0c5f565be9', 'role': 'admin', 'name': 'Ocado-group', 'msp_id': 'd70b3ef3-7c20-4826-b16d-18935792ce7a', 'msp_name': 'Ocado MSP', 'orggroup_ids': []}]}
+```
+
+**Ex. 2: INFO level**
+
+Each method then resets logging to `ERROR`, so you need to set logging level before each one.
+
+
+
+
+
+
+
+
+
+
 

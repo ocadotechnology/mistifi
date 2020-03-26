@@ -163,16 +163,10 @@ class MistiFi:
             #
             self.login_payload = {"email": None, "password": None}
 
+            # Get the username
             if not self.username:
-                user_input = input("Mist username required. Should I use `{}` to continue [Y/n]?".format(getpass.getuser()))
-
-                # Option for a user if they want to specify a username
-                if user_input.lower() == "n":
-                    #kwargs.update({ 'username': input("Username:\x20") })
-                    self.username = input("Username:\x20")
-                # ...any other answer, just use their current username
-                else:
-                    self.username = getpass.getuser()
+                input("Username:\x20")
+                self.username = getpass.getuser()
 
             self.login_payload['email'] = self.username
 
@@ -330,7 +324,6 @@ class MistiFi:
         resp_status_code = response.status_code
         resp_text = response.text
 
-
         logger.info(f"Response status code: {resp_status_code}")
 
         # Return nothing if status code is higher than 400
@@ -339,9 +332,10 @@ class MistiFi:
             return None
         # Otherwise return the JSON response
         else:
+            jresponse = response.json()
             logger.debug(f'Response HEAD: {resp_head}')
             logger.debug(f'The response: {jresponse}')
-            return response.json()
+            return jresponse
 
     def _resource_url(self, **kwargs):
         """The resource URL formatter

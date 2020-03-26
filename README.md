@@ -97,8 +97,7 @@ The default debug level is `ERROR`, which can be changed per method call by pree
 ```python
 >>> logzero.loglevel(logging.DEBUG)
 >>> mist_user.whoami()
-```
-```Shell
+
 [I 200326 14:48:17 mistifi:547] Calling whoami()
 [I 200326 14:48:17 mistifi:548] kwargs in: {}
 [I 200326 14:48:17 mistifi:511] Calling resource()
@@ -115,7 +114,7 @@ The default debug level is `ERROR`, which can be changed per method call by pree
 [D 200326 14:48:17 mistifi:336] With headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}
 [I 200326 14:48:18 mistifi:346] Response status code: 200
 [D 200326 14:48:18 mistifi:356] Response HEAD: {'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Origin': 'https://manage.mist.com', 'Access-Control-Expose-Headers': 'X-CSRFTOKEN,X-Requested-With,X-Page-Page,X-Page-Total', 'Allow': 'GET, OPTIONS, DELETE, PUT', 'Cache-Control': 'no-cache, no-store', 'Content-Type': 'application/json', 'Date': 'Thu, 26 Mar 2020 14:48:18 GMT', 'Pragma': 'no-cache', 'Server': 'gunicorn/19.10.0', 'Set-Cookie': 'sessionid=8trv1zr79sknwk0n7sz2pim8x26g84mh; Domain=.mist.com; expires=Fri, 27-Mar-2020 14:48:18 GMT; HttpOnly; Max-Age=86400; Path=/; Secure', 'Vary': 'Origin', 'Via': 'kong/0.9.3', 'X-Frame-Options': 'SAMEORIGIN', 'X-Kong-Proxy-Latency': '0', 'X-Kong-Upstream-Latency': '39', 'Content-Length': '608', 'Connection': 'keep-alive'}
-[D 200326 14:48:18 mistifi:357] The response: {'email': 'net-wifi@ocado.com', 'first_name': 'net', 'last_name': 'wifi', 'tags': ['mist-customer'], 'session_expiry': 1440, 'privileges': [{'scope': 'msp', 'msp_id': 'd70b3ef3-7c20-4826-b16d-18935792ce7a', 'role': 'admin', 'name': 'Ocado MSP'}, {'scope': 'org', 'org_id': '93a28cf5-2b40-40a7-97d3-05ed23f43682', 'role': 'admin', 'name': 'Ocado Testing', 'msp_id': 'd70b3ef3-7c20-4826-b16d-18935792ce7a', 'msp_name': 'Ocado MSP', 'orggroup_ids': []}, {'scope': 'org', 'org_id': '1e43492c-0620-406e-8c4b-aa0c5f565be9', 'role': 'admin', 'name': 'Ocado-group', 'msp_id': 'd70b3ef3-7c20-4826-b16d-18935792ce7a', 'msp_name': 'Ocado MSP', 'orggroup_ids': []}]}
+[D 200326 14:48:18 mistifi:357] The response: {'email': 'blah@mist.com'...}
 ```
 
 **Ex. 2: INFO level**

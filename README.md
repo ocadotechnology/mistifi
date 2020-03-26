@@ -98,7 +98,7 @@ The default debug level is `ERROR`, which can be changed per method call by pree
 >>> logzero.loglevel(logging.DEBUG)
 >>> mist_user.whoami()
 ```
-```xml
+```programming
 [I 200326 14:48:17 mistifi:547] Calling whoami()
 [I 200326 14:48:17 mistifi:548] kwargs in: {}
 [I 200326 14:48:17 mistifi:511] Calling resource()

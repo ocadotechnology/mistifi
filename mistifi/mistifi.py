@@ -506,7 +506,7 @@ class MistiFi:
         return jresp
 
     def whoami(self, method='GET', **kwargs):
-        """For manipulating '/self' endpoint.
+        """Resource method for manipulating '/self' endpoint.
 
         The URI inside the function is '/self' which gets
         added to the end of the URL.
@@ -532,7 +532,7 @@ class MistiFi:
         return self.resource(method, **kwargs)
 
     def apitokens(self, method="GET", **kwargs):
-        """For managing API tokens.
+        """Resource method for managing API tokens.
 
         The URI inside the function is '/self/apitokens' which gets
         added to the URL at the end.
@@ -569,7 +569,7 @@ class MistiFi:
         return self.resource(method, **kwargs)
 
     def wlans(self, method='GET', jdata=None, **kwargs):
-        """For manipulating '/wlans' endpoint.
+        """Resource method for manipulating '/wlans' endpoint.
 
         The URI inside the function is '/wlans' which gets
         added to the URL at the end

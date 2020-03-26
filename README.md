@@ -21,6 +21,11 @@ import mistifi
 
 # Usage
 
+The usage workflow intended is:
+1. Create an instance with passing in the cloud and authentication options.
+2. Initiate communication with the `comms()` method.
+3. Use the `resource()` method or 
+
 When creating an instance pass in the `cloud` option to specify a direct instance of a cloud. If not passed in, the default `US` will be used.
 
 ## Selecting a cloud
@@ -28,6 +33,7 @@ There are currently two cloud options to select from. Either `EU` or `US`, with 
 They default to
 - US = api.mist.com
 - EU = api.eu.mist.com
+
 **Ex. 1: Using the default `US` cloud**
 ```python
 >>> mist = MMClient()
@@ -42,9 +48,9 @@ Note that using either caps or not for the value will work. In the below example
 ```
 ## Using a token or username/password
 
-**Ex. 1: Use with a token**
+**Ex. 1: Using a token**
 
-In below example token is used with the US cloud.
+In below example a token `thetoken` is used with the US cloud. You can create a user token by following [these instructions](https://www.mist.com/documentation/using-postman/)
 ```python
 >>> mist = MMClient(token="thetoken")
 ```
@@ -55,15 +61,14 @@ An alternative with specifying the EU cloud would be.
 
 **Usage without the token.**
 
-In this case you are asked for username and password or you can provide one or both or none when creating a new instance.
+In this case you are asked for username and password or you can provide one or both or neither when creating a new instance.
 
 ```python
->>> mist = MMClient(cloud='us')
->>> mist.comms()
+>>> mist = MMClient()
 ```
 
 ```python
 >>> mist = MMClient(cloud='us', username="theuser@mistifi.com")
->>> mist.comms()
 ```
 Currently 2FA and OAUTH aren't supported.
+

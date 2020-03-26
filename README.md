@@ -1,9 +1,13 @@
 # Mistifi
 
-Is a RESTAPI client used for interfacing with Mist (Juniper) API.
+Mistifi is a highly scalable Python module enabling full interfacing with the Mist RestAPI.
 
 ## Motivation
 
+Goals:
+- Highly scalable
+- Easy to use & maintain
+- Able to interface to the fullest with all Mist URIs
 
 # Installation
 

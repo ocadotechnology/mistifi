@@ -7,7 +7,7 @@ Mistifi is a highly scalable Python module enabling full interfacing with the Mi
 Goals:
 - Highly scalable
 - Easy to use & maintain
-- Able to interface to the fullest with all Mist URIs
+- Able to interface to the fullest with all Mist API URIs
 
 # Installation
 
@@ -165,6 +165,10 @@ Here no log level was set.
 [E 200326 14:58:24 mistifi:351] Response Error:
     {"detail":"CSRF Failed: CSRF token missing or incorrect."}
 ```
+
+# TODO
+The general TODO list is:
+- add more/all URIs
 
 # Contributing
 Thank you for helping us develop Mistifi. We're happy to accept contribution of any kind. Feel free to submit feature requests and bug reports under Issues.

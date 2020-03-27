@@ -104,7 +104,8 @@ For example, GET-ing `/self` can be achieved by either the `resource()` method o
 True
 ```
 
-# Debugging 
+# Additional
+##Debugging 
 
 The default debug level is `ERROR`, which can be changed per method call by preempting it with `logzero.loglevel(logging.LEVEL)` where `LEVEL` is the debug level.
 Each method then resets logging to `ERROR`, so you need to set logging level before each one.

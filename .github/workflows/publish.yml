@@ -40,18 +40,13 @@ jobs:
     - name: Install localy
       run: pip install -e .
 
-    - name: Build the module sdist & bdist
-      run: python setup.py sdist bdist_wheel
-
-    - name: Check build with twine
-      run : twine check dist/*
-
-    - name: Build and publish to Test PyPi
+    - name: Build, check and publish to Test PyPi
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_TOKEN_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
       run: |
         python setup.py sdist bdist_wheel
+        twine check dist/*
         twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
   # Deploy it to PyPi
@@ -75,8 +70,8 @@ jobs:
         pip install setuptools wheel twine
     - name: Build and publish
       env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        TWINE_USERNAME: ${{ secrets.PYPI_TOKEN_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PROD_TOKEN }}
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*

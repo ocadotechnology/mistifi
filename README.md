@@ -28,15 +28,19 @@ import mistifi
 The usage workflow intended is:
 1. Create an instance with passing in the cloud and authentication options.
 2. Initiate communication with the `comms()` method.
-3. Use the `resource()` method or 
+3. Interface with the API with the use of either a specific endpoint method (like `wlans()` for example) or the `resource()` method.
 
-When creating an instance pass in the `cloud` option to specify a direct instance of a cloud. If not passed in, the default `US` will be used.
+## Create an instance 
+### Selecting a cloud
 
-## Selecting a cloud
+When creating an instance pass in the `cloud` option to specify a direct instance of a cloud.
+
 There are currently two cloud options to select from. Either `EU` or `US`, with `US` being the default if not provided with the `cloud` attribute.
 They default to
 - US = api.mist.com
 - EU = api.eu.mist.com
+
+If not passed in, the default `US` will be used.
 
 **Ex. 1: Using the default `US` cloud**
 ```python
@@ -50,7 +54,7 @@ Note that using either caps or not for the value will work. In the below example
 ```python
 >>> mist = MMClient(cloud="us")
 ```
-## Using a token or username/password
+### Using a token or username/password
 
 **Ex. 1: Using a token**
 

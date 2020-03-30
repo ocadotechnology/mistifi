@@ -41,15 +41,17 @@ If not passed in, the default `US` will be used.
 
 **Ex. 1: Using the default `US` cloud**
 ```python
->>> mist = MMClient()
+mist = MMClient()
 ```
+In this case not only will the `US` cloud be used but also a username/password option for user login (Look at next section for explanation on this).
+
 **Ex. 2: Specifying the `EU` cloud**
 ```python
->>> mist = MMClient(cloud="EU")
+mist = MMClient(cloud="EU")
 ```
-Note that using either caps or not for the value will work. In the below example the `US` cloud will be used.
+Note that the cloud parameter is case-insensitive. In the below example the `US` cloud will be used.
 ```python
->>> mist = MMClient(cloud="us")
+mist = MMClient(cloud="us")
 ```
 ### Using a token or username/password
 
@@ -57,15 +59,15 @@ Note that using either caps or not for the value will work. In the below example
 
 In below example a token `thetoken` is used with the US cloud. You can create a user token by following [these instructions](https://www.mist.com/documentation/using-postman/)
 ```python
->>> mist = MMClient(token="thetoken")
+mist = MMClient(token="thetoken")
 ```
 An alternative with specifying the EU cloud would be.
 ```python
->>> mist = MMClient(cloud="EU", token="thetoken")
+mist = MMClient(cloud="EU", token="thetoken")
 ```
 The token always has preference before username/password or other option, so in the below example a token would be used.
 ```python
->>> mist = MMClient(, token="thetoken", username="theuser@mistifi.com", password="thepass")
+mist = MMClient(, token="thetoken", username="theuser@mistifi.com", password="thepass")
 ```
 
 **Ex. 2: Using username and password.**
@@ -74,20 +76,20 @@ Currently 2FA and OAUTH aren't supported.
 
 The minimum required for this option is to create an instance without any attributes like below.
 ```python
->>> mist = MMClient()
+mist = MMClient()
 ```
 In this case you are asked for username and password.
 
 You can provide one or both when creating a new instance and be asked about the other once the `comms()` method is run.
 
 ```python
->>> mist = MMClient(cloud='us', username="theuser@mistifi.com")
+mist = MMClient(cloud='us', username="theuser@mistifi.com")
 ```
 
 ## Communicating with the cloud
 Once the cloud and authentication options are selected you must run the `comms()` method which correctly sets up the headers depending on the authentication method used. For example `X-CSRFTOKEN` is setup for the username/password option.
 ```python
->>> mist = comms()
+mist = comms()
 ```
 
 ## Interfacing with the cloud URIs

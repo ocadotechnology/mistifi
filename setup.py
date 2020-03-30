@@ -19,8 +19,6 @@ setup(
     long_description_content_type ="text/markdown",
     author               = 'Primoz Marinsek',
     author_email         = 'primoz.marinsek@ocado.com',
-    contributor          = 'Ben Cardy',
-    contributor_emails   = 'ben.cardy@ocado.com',
     license              = "Apache-2.0",
     packages             = find_packages(),
     include_package_data = True,

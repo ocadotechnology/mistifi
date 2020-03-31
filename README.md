@@ -181,8 +181,9 @@ Thank you for helping us develop Mistifi. We're happy to accept contribution of 
 - When you respond to changes based on comments from a code review, please reply with "Done." so that we get a notification.
 
 ## Contributors
-[Primoz Marinsek](primoz.marinsek@ocado.com)
-[Ben Cardy](ben.cardy.ocado.com)
+[Primoz Marinsek](https://github.com/pmarinsek)
+
+[Ben Cardy](https://github.com/benbacardi)
 
 
 

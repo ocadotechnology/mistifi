@@ -23,7 +23,7 @@ clouds = {
 logzero.loglevel(logging.ERROR)
 
 class MistiFi:
-    """All Mist API URIs are found on https://api.mist.com/api/v1/docs/Home, 
+    """All Mist API URIs are found on https://api.mist.com/api/v1/docs/Home 
     and are accessible if logged in
 
     Parameters
@@ -138,7 +138,7 @@ class MistiFi:
     def comms(self):
         """The first method to be called to configure the session and to login to the Mist cloud.
 
-        It sets all the required headers.
+        It sets up the login payload in the case of username/password login
         """
 
         logger.info('Calling communicate()')
@@ -163,16 +163,9 @@ class MistiFi:
             #
             self.login_payload = {"email": None, "password": None}
 
+            # Get the username
             if not self.username:
-                user_input = input("Mist username required. Should I use `{}` to continue [Y/n]?".format(getpass.getuser()))
-
-                # Option for a user if they want to specify a username
-                if user_input.lower() == "n":
-                    #kwargs.update({ 'username': input("Username:\x20") })
-                    self.username = input("Username:\x20")
-                # ...any other answer, just use their current username
-                else:
-                    self.username = getpass.getuser()
+                self.username = input("Username (email):\x20")
 
             self.login_payload['email'] = self.username
 
@@ -189,7 +182,7 @@ class MistiFi:
             self.login_payload['password'] = self.password
             logger.debug('Proceeding with username and password.')
 
-            # Finaly login
+            # Finally login
             self._user_login(self.login_payload)
 
         # Reset the log level to ERROR only
@@ -217,7 +210,7 @@ class MistiFi:
         return resp
 
     def _config_session(self):
-        """Session configurator for headers and requests.Session()
+        """Session configuration for requests.Session()
         """
 
         logger.info(f'Calling _config_session()')
@@ -265,39 +258,43 @@ class MistiFi:
         login_payload: dict
             A dict with username and password credentials
         
-        Return:
-        -------
-        Nothing
+        Return
+        ------
+            None
         """
+        error_resp = {'err': True}
+
         logger.info(f'Calling _user_login()')
         
         url_login = self._resource_url(uri='/login')
-        #url_login = self._resource_url(org_id=':org_id')
-        #url_login = self._resource_url(site_id=':site_id')
-        #url_login = self._resource_url(site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(org_id=":org_id", site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(org_id=":org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
-        #url_login = self._resource_url(org_id="/:org_id/orgA/", site_id=':site_id/siteA', uri='/uri')
-        #url_login = self._resource_url(something='/:sdkinvite_id/email',site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(collection='/:collection',object_id=':obj_id',site_id=':site_id')
-        #url_login = self._resource_url(something='/:sdkinvite_id/email',org_id=':org_id', uri='/uri')
-        #url_login = self._resource_url(something='/:sdkinvite_id/email',org_id=":org_id", site_id=':site_id', uri='/uri')
-        #url_login = self._resource_url(something='/:sdkinvite_id/email', blah="/blah", org_id=":org_id", site_id=':site_id', uri='/uri')
-        #exit(0)
 
         # Login with or without the 2 factor token
         resp = self.session.post(url_login, json=login_payload)
 
         # The headers and cookies in the response
         resp_head = resp.headers
-        resp_csrftoken = resp.cookies['csrftoken']
+        resp_status_code = resp.status_code
+        resp_text = resp.text
 
         logger.info(f'Login response code: {resp.status_code}')
         logger.debug(f'Response HEAD: {resp_head}')
+
+        # Return nothing if status code is higher than 400
+        if resp_status_code != 200:
+            error_resp['detail'] = json.loads(resp_text)['detail']
+            logger.error(f"Response Error:\n{error_resp}")
+            exit(0)
+        # Otherwise return the JSON response
+        else:
+            jresponse = resp.json()
+            logger.debug(f'Response HEAD: {resp_head}')
+            logger.debug(f'The response: {jresponse}')
+            return jresponse
         
         # Need to update the headers with the CSRF token to be able
         # to POST, PUT or DELETE in further requests
         try:
+            resp_csrftoken = resp.cookies['csrftoken']
             self.session.headers['X-CSRFTOKEN'] = resp_csrftoken
         except KeyError:
             logger.exception("'Set-Cookie' not in header response")
@@ -327,43 +324,47 @@ class MistiFi:
         Returns:
         --------
         The response in JSON format if status code is below 400
-        None if status <400. Error can be seen with logging
+        None if status >=400. Error can be seen with logging
         """
+        # Maybe I should return this if code !=200????
+        # Figure it out later
+        error_resp = {'err': True}
+
         logger.info("Calling _api_call()")
         logger.info(f"Method is: {method.upper()}")
         logger.info(f"Calling URL: {url}")
         logger.debug(f'With headers: {self.headers}')
 
-        # This is where the call hapens
+        # This is where the call happens
         response = getattr(self.session, method.lower())(url, **kwargs)
+
+        # Some response variables here
         resp_head = response.headers
         resp_status_code = response.status_code
         resp_text = response.text
 
-        try:
-            jresponse = response.json()
-            logger.debug(f'The response: {jresponse}')
-        except json.decoder.JSONDecodeError:
-            pass
-
         logger.info(f"Response status code: {resp_status_code}")
-        logger.debug(f'Response HEAD: {resp_head}')
 
         # Return nothing if status code is higher than 400
         if resp_status_code >= 400:
+            error_resp['detail'] = json.loads(resp_text)['detail']
             logger.error(f"Response Error:\n{resp_text}")
-            return None
-        
-        return jresponse
+            return
+        # Otherwise return the JSON response
+        else:
+            jresponse = response.json()
+            logger.debug(f'Response HEAD: {resp_head}')
+            logger.debug(f'The response: {jresponse}')
+            return jresponse
 
     def _resource_url(self, **kwargs):
         """The resource URL formatter
         
         Will return the properly formated URL with any provided org_id, site_id, 
-        uri or parameters, or a combination of all.
+        uri, etc, or a combination of them all.
 
         URL is returned in a Mist defines hierarchy with org_id first, then site_id,
-        then other IDs and URI
+        then other IDs and URIs.
 
         Args
         ----
@@ -378,6 +379,8 @@ class MistiFi:
         uri: `str`
             The endpoint resource, e.g. '/self', or 'self', 
             or '/self/' will all work
+        apitoken_id: `str`
+            The token ID of a specific user token
         
         Keyword Args
         ------------
@@ -449,7 +452,7 @@ class MistiFi:
         return url
 
     def _params(self, **kwargs):
-        """Parameters configurator for passing into the requests module
+        """Parameters configurator for passing into requests as params attribute.
 
         Meant for parameters that get passed with the `params` attribute of 
         requests.
@@ -463,7 +466,7 @@ class MistiFi:
         Returns:
         --------
         params: `dict`
-            The params dict of parameters to be passed with the requets params attribute
+            The params dict of parameters to be passed with the request params attribute
         """
         logger.info("Calling _params()")
         logger.info(f"kwargs in: {kwargs}")
@@ -478,13 +481,15 @@ class MistiFi:
         return params
 
     def resource(self, method, jpayload=None, **kwargs):
-        """Actiones the HTTP request type defined with the `method`.
+        """Actions the HTTP request 
+
+        type defined with the `method`.
 
         This is the main function of the class, which does all the interfacing 
         with the API. It can be called by its own with a valid HTTP method,
-        but the preffered way is to define a resource method below that utilises
-        this one for interfacing. The difference between the 2 apporoaches is 
-        shown in the Examples.
+        but the preferred way is to define a resource method below that utilizes
+        this one for interfacing. The difference between the 2 approaches is 
+        shown in the Examples or README file.
         
         Args:
         -----
@@ -501,10 +506,7 @@ class MistiFi:
 
         Returns:
         --------
-        The JSON response with either the sucesfull response or the error response.
-
-        Examples:
-        ---------
+        The JSON response with either the successful response or the error response.
         """
         logger.info("Calling resource()")
         logger.debug(f'kwargs in: {kwargs}')
@@ -523,16 +525,20 @@ class MistiFi:
 
         return jresp
 
+    #
+    ## Here are defined resource methods that interface with a specific endpoint.
+    #
+    
     def whoami(self, method='GET', **kwargs):
-        """For manipulating '/self' enpoint.
+        """Resource method for manipulating '/self' endpoint.
 
         The URI inside the function is '/self' which gets
-        added to the URL at the end
+        added to the end of the URL.
 
         Args
         ----
         method: str, default 'GET'
-            A valid HTTP method
+            A valid HTTP method, but only GET is allowed.
 
         Keyword Args
         ------------
@@ -550,12 +556,12 @@ class MistiFi:
         return self.resource(method, **kwargs)
 
     def apitokens(self, method="GET", **kwargs):
-        """For managing API tokens.
+        """Resource method for managing API tokens.
 
         The URI inside the function is '/self/apitokens' which gets
         added to the URL at the end.
 
-        If run without any kwargs it returns a list of all API tokens.
+        If run without any additional args it returns a list of all API tokens.
         If passing in the 'apitoken_id' method is DELETE and that id gets
         deleted.
 
@@ -587,7 +593,7 @@ class MistiFi:
         return self.resource(method, **kwargs)
 
     def wlans(self, method='GET', jdata=None, **kwargs):
-        """For manipulating '/wlans' endpoint.
+        """Resource method for manipulating '/wlans' endpoint.
 
         The URI inside the function is '/wlans' which gets
         added to the URL at the end

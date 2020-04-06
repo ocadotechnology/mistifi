@@ -47,7 +47,7 @@ jobs:
       run: |
         python setup.py sdist bdist_wheel
         twine check dist/*
-        twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing dist/*
+        twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
   # Deploy it to PyPi
   deploy:

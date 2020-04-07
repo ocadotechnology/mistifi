@@ -18,6 +18,7 @@ or using `pip3` if using python3.
 The module is imported with
 ```python
 import mistifi
+from mistifi import MistiFi
 ```
 
 # Usage
@@ -67,7 +68,7 @@ mist = MistiFi(cloud="EU", token="thetoken")
 ```
 The token always has preference before username/password or other option, so in the below example a token would be used.
 ```python
-mist = MistiFi(, token="thetoken", username="theuser@mistifi.com", password="thepass")
+mist = MistiFi(token="thetoken", username="theuser@mistifi.com", password="thepass")
 ```
 
 **Ex. 2: Using username and password.**
@@ -97,22 +98,51 @@ If a specific resource method for a specific URI is not defined the main method 
 
 For example, GET-ing `/self` can be achieved by either the `resource()` method or the `whoami()` one.
 ```python
->>> whoami = mist_user.whoami()
->>> rwhoami = mist_user.resource("GET", uri="/self")
+>>> whoami = mist.whoami()
+>>> rwhoami = mist.resource("GET", uri="/self")
 >>> print(whoami == rwhoami)
 True
 ```
 
+## Understanding the resource() method
+The main method all others use on is `resource()`. You can pass keyword arguments into it. Pretty much anything will work, but there are some rules.
+
+First thing is that those kwargs are used to build the URL to the Mist cloud endpoint, therefore passing in proper parameters is necessary. Some parameters are special and handled differently. 
+
+Example of special kwargs is `params`. If passing in that kwarg, it will be handled differently so that it is passed into the `requests.Session()` as `params`.
+
+If passing in `org_id=':org_id'`, `site_id='site_id'`, `uri='some_uri'` will create URL properly with the `org_id` first `site_id` second and then the `uri`. 
+
+All other kwargs will be added at the end to the URL, so make sure that URL exists. Error 400 is thrown otherwise.
+
+Example:
+```python
+mist.resource(
+	"GET", 
+	site_id=":site_id123", 
+	wlan_id=":wlan_id123", 
+	org_id=":org_id123", 
+	blah="/blah", 
+	params={"paramA": "valueA", 'paramB': 'valueB'})
+```
+builds the URL to `https://api.mist.com/api/v1/orgs/:org_id123/sites/:site_id123/wlans/:wlan_id123/blah` and `params` are added at the end when passed in the requests as `params`.
+
 # Additional
-##Debugging 
+## Debugging 
 
 The default debug level is `ERROR`, which can be changed per method call by preempting it with `logzero.loglevel(logging.LEVEL)` where `LEVEL` is the debug level.
 Each method then resets logging to `ERROR`, so you need to set logging level before each one.
 
+You can import the below for this
+```python
+import logging
+import logzero
+from logzero import logger
+```
 **Ex. 1: DEBUG level**
 ```python
 >>> logzero.loglevel(logging.DEBUG)
->>> mist_user.whoami()
+>>> mist.whoami()
 ```
 ```
 [I 200326 14:48:17 mistifi:547] Calling whoami()
@@ -137,7 +167,7 @@ Each method then resets logging to `ERROR`, so you need to set logging level bef
 **Ex. 2: INFO level**
 ```python
 >>> logzero.loglevel(logging.INFO)
->>> mist_user.whoami()
+>>> mist.whoami()
 ```
 ```
 [I 200326 14:58:23 mistifi:547] Calling whoami()
@@ -156,7 +186,7 @@ Each method then resets logging to `ERROR`, so you need to set logging level bef
 **Ex. 3: Examples of error output**
 Here no log level was set.
 ```python
->>> mist_user.whoami()
+>>> mist.whoami()
 ```
 ```
 [E 200326 14:58:24 mistifi:351] Response Error:

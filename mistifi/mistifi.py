@@ -276,17 +276,16 @@ class MistiFi:
         resp_status_code = resp.status_code
         resp_text = resp.text
 
-        logger.info(f'Login response code: {resp.status_code}')
-        logger.debug(f'Response HEAD: {resp_head}')
-
         # Return nothing if status code is higher than 400
         if resp_status_code != 200:
             error_resp['detail'] = json.loads(resp_text)['detail']
+            logger.error(f'Login response code: {resp.status_code}')
             logger.error(f"Response Error:\n{error_resp}")
             exit(0)
         # Otherwise return the JSON response
         else:
             jresponse = resp.json()
+            logger.info(f'Login response code: {resp.status_code}')
             logger.debug(f'Response HEAD: {resp_head}')
             logger.debug(f'The response: {jresponse}')
             return jresponse
@@ -365,6 +364,9 @@ class MistiFi:
 
         URL is returned in a Mist defines hierarchy with org_id first, then site_id,
         then other IDs and URIs.
+
+        Current special kwargs are: 
+            ``org_id``, ``site_id``, ``map_id``, ``wlan_id``, ``uri``, ``apitoken_id``, ``params``
 
         Args
         ----

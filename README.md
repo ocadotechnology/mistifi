@@ -104,11 +104,15 @@ True
 ```
 
 ## Understanding the resource() method
-The main method all others use on is `resource()`. You can pass keyword arguments into it. Pretty much anything will work, but what it does is it builds the URL to the Mist cloud endpoint, which must exsist.
+The main method all others use on is `resource()`. You can pass keyword arguments into it. Pretty much anything will work, but there are some rules.
 
-The other thing that happens is that kwargs are passed into the `_params()` metohd. that creates the params keyword argument for the requests.Session()
+First thing is that those kwargs are used to build the URL to the Mist cloud endpoint, therefore passing in proper parameters is necessary. Some parameters are special and handled differently. 
 
+Example of special kwargs is `params`. If passing in that kwarg, it will be handled differently so that it is passed into the `requests.Session()` as `params`.
 
+If passing in `org_id=':org_id'`, `site_id='site_id'`, `uri='some_uri'` will create URL properly with the `org_id` first `site_id` second and then the `uri`. 
+
+All other kwargs will be added at the end to the URL, so make sure that URL exists. Error 400 is thrown otherwise.
 
 # Additional
 ##Debugging 

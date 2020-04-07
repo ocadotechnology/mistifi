@@ -366,6 +366,9 @@ class MistiFi:
         URL is returned in a Mist defines hierarchy with org_id first, then site_id,
         then other IDs and URIs.
 
+        Current special kwargs are: 
+            ``org_id``, ``site_id``, ``map_id``, ``wlan_id``, ``uri``, ``apitoken_id``
+
         Args
         ----
         org_id: `str`

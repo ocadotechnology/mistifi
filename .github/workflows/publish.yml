@@ -4,14 +4,11 @@
 name: Managing the package
 
 on: 
-  pull_request:
+  push:
     branches: 'master'
     jobs:
-      - build_and_test
-      - deploy
-  push:
-    jobs:
-      - build_and_test
+      build_and_test: 
+        name: build_and_test
   release:
     tags: 
       - '*'

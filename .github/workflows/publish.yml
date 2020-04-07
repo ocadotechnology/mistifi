@@ -10,7 +10,6 @@ on:
       - build_and_test
       - deploy
   push:
-    branches: '!master'
     jobs:
       - build_and_test
   release:

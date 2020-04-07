@@ -133,6 +133,12 @@ builds the URL to `https://api.mist.com/api/v1/orgs/:org_id123/sites/:site_id123
 The default debug level is `ERROR`, which can be changed per method call by preempting it with `logzero.loglevel(logging.LEVEL)` where `LEVEL` is the debug level.
 Each method then resets logging to `ERROR`, so you need to set logging level before each one.
 
+You can import the below for this
+```python
+import logging
+import logzero
+from logzero import logger
+```
 **Ex. 1: DEBUG level**
 ```python
 >>> logzero.loglevel(logging.DEBUG)

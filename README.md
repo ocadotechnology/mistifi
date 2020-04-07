@@ -67,7 +67,7 @@ mist = MistiFi(cloud="EU", token="thetoken")
 ```
 The token always has preference before username/password or other option, so in the below example a token would be used.
 ```python
-mist = MistiFi(, token="thetoken", username="theuser@mistifi.com", password="thepass")
+mist = MistiFi(token="thetoken", username="theuser@mistifi.com", password="thepass")
 ```
 
 **Ex. 2: Using username and password.**
@@ -102,6 +102,11 @@ For example, GET-ing `/self` can be achieved by either the `resource()` method o
 >>> print(whoami == rwhoami)
 True
 ```
+
+## Understanding the resource() method
+The main method all others use on is `resource()`. You can pass keyword arguments into it. Pretty much anything will work, but it needs to be understood by 
+
+
 
 # Additional
 ##Debugging 

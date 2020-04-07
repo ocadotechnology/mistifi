@@ -104,7 +104,9 @@ True
 ```
 
 ## Understanding the resource() method
-The main method all others use on is `resource()`. You can pass keyword arguments into it. Pretty much anything will work, but it needs to be understood by 
+The main method all others use on is `resource()`. You can pass keyword arguments into it. Pretty much anything will work, but what it does is it builds the URL to the Mist cloud endpoint, which must exsist.
+
+The other thing that happens is that kwargs are passed into the `_params()` metohd. that creates the params keyword argument for the requests.Session()
 
 
 

@@ -1,18 +1,13 @@
-# This workflows will upload a Python Package using Twine when a release is created
+# This workflows will upload a Python Package using Twine when a release is created and tagged
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
 
-name: Managing the package
+name: Depolying the package to prod PyPi
 
 on: 
-  push:
-    branches: 
-      - '!master'
-    jobs:
-      build_and_test: 
-        name: build_and_test
   release:
     tags: 
       - '*'
+
 
 jobs:
   
@@ -42,14 +37,14 @@ jobs:
     - name: Install localy
       run: pip install -e .
 
-    - name: Build, check and publish to Test PyPi
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_TOKEN_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
-      run: |
-        python setup.py sdist bdist_wheel
-        twine check dist/*
-        twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing dist/*
+    #- name: Build, check and publish to Test PyPi
+    #  env:
+    #    TWINE_USERNAME: ${{ secrets.PYPI_TOKEN_USERNAME }}
+    #    TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+    #  run: |
+    #    python setup.py sdist bdist_wheel
+    #    twine check dist/*
+    #    twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing dist/*
 
   # Deploy it to PyPi
   deploy:

@@ -97,8 +97,8 @@ If a specific resource method for a specific URI is not defined the main method 
 
 For example, GET-ing `/self` can be achieved by either the `resource()` method or the `whoami()` one.
 ```python
->>> whoami = mist_user.whoami()
->>> rwhoami = mist_user.resource("GET", uri="/self")
+>>> whoami = mist.whoami()
+>>> rwhoami = mist.resource("GET", uri="/self")
 >>> print(whoami == rwhoami)
 True
 ```
@@ -114,8 +114,14 @@ If passing in `org_id=':org_id'`, `site_id='site_id'`, `uri='some_uri'` will cre
 
 All other kwargs will be added at the end to the URL, so make sure that URL exists. Error 400 is thrown otherwise.
 
+Example:
+```python
+mist.resource("GET", site_id=":site_id123", wlan_id=":wlan_id123", org_id=":org_id123", blah="/blah", params={"paramA": "valueA", 'paramB': 'valueB'})
+```
+builds the URL to `https://api.mist.com/api/v1/orgs/:org_id123/sites/:site_id123/wlans/:wlan_id123/blah` and `params` are added at the end when passed in the requests as `params`.
+
 # Additional
-##Debugging 
+## Debugging 
 
 The default debug level is `ERROR`, which can be changed per method call by preempting it with `logzero.loglevel(logging.LEVEL)` where `LEVEL` is the debug level.
 Each method then resets logging to `ERROR`, so you need to set logging level before each one.
@@ -123,7 +129,7 @@ Each method then resets logging to `ERROR`, so you need to set logging level bef
 **Ex. 1: DEBUG level**
 ```python
 >>> logzero.loglevel(logging.DEBUG)
->>> mist_user.whoami()
+>>> mist.whoami()
 ```
 ```
 [I 200326 14:48:17 mistifi:547] Calling whoami()
@@ -148,7 +154,7 @@ Each method then resets logging to `ERROR`, so you need to set logging level bef
 **Ex. 2: INFO level**
 ```python
 >>> logzero.loglevel(logging.INFO)
->>> mist_user.whoami()
+>>> mist.whoami()
 ```
 ```
 [I 200326 14:58:23 mistifi:547] Calling whoami()
@@ -167,7 +173,7 @@ Each method then resets logging to `ERROR`, so you need to set logging level bef
 **Ex. 3: Examples of error output**
 Here no log level was set.
 ```python
->>> mist_user.whoami()
+>>> mist.whoami()
 ```
 ```
 [E 200326 14:58:24 mistifi:351] Response Error:

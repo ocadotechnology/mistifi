@@ -18,6 +18,7 @@ or using `pip3` if using python3.
 The module is imported with
 ```python
 import mistifi
+from mistifi import MistiFi
 ```
 
 # Usage

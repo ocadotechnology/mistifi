@@ -117,7 +117,13 @@ All other kwargs will be added at the end to the URL, so make sure that URL exis
 
 Example:
 ```python
-mist.resource("GET", site_id=":site_id123", wlan_id=":wlan_id123", org_id=":org_id123", blah="/blah", params={"paramA": "valueA", 'paramB': 'valueB'})
+mist.resource(
+	"GET", 
+	site_id=":site_id123", 
+	wlan_id=":wlan_id123", 
+	org_id=":org_id123", 
+	blah="/blah", 
+	params={"paramA": "valueA", 'paramB': 'valueB'})
 ```
 builds the URL to `https://api.mist.com/api/v1/orgs/:org_id123/sites/:site_id123/wlans/:wlan_id123/blah` and `params` are added at the end when passed in the requests as `params`.
 

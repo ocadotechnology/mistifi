@@ -228,7 +228,7 @@ class MistiFi:
 
         # Return nothing if status code is higher than 400
         if resp_status_code != 200:
-            #error_resp['detail'] = json.loads(resp_text)['detail']
+            error_resp['detail'] = json.loads(resp_text)['detail']
             logger.error(f'Login response code: {resp.status_code}')
             logger.error(f"Response Error:\n{error_resp}")
             exit(0)
@@ -295,7 +295,7 @@ class MistiFi:
 
         # Return nothing if status code is higher than 400
         if resp_status_code >= 400:
-            error_resp['detail'] = json.loads(resp_text)['detail']
+            #error_resp['detail'] = json.loads(resp_text)['detail']
             logger.error(f"Response Error:\n{resp_text}")
             return
         # Otherwise return the JSON response

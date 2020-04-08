@@ -90,7 +90,7 @@ class MistiFi:
         It sets up the login payload and the session headders depending on the type of login.
         """
 
-        logger.info('Calling communicate()')
+        logger.info('Calling comms()')
 
         #logger.debug(f"Selected cloud: '{self.cloud}' >> '{cloud.upper()}'")
         logger.debug(f'Base URL: {self.mist_base_api_url}')
@@ -103,7 +103,7 @@ class MistiFi:
         #
         if self.token:
             self.session.headers['Authorization'] = f'Token {self.token}'
-            logger.debug('Using token')
+            logger.debug('Token added to session.headers')
 
         # ...otherwise prompt for user credentials if not provided
         else:
@@ -282,12 +282,6 @@ class MistiFi:
         logger.info("Calling _api_call()")
         logger.info(f"Method is: {method.upper()}")
         logger.info(f"Calling URL: {url}")
-
-        # Hide the token before displaying it in the debug
-        headers = self.session.headers
-        if 'Authorization' in headers:
-            headers['Authorization'] = "Token <hidden>"
-        logger.debug(f'With headers: {headers}')
 
         # This is where the call happens
         response = getattr(self.session, method.lower())(url, **kwargs)

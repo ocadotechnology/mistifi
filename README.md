@@ -4,7 +4,7 @@ Mistifi is a Python module enabling full interfacing with the Mist RestAPI.
 
 ## Motivation
 
-To provide an easy to use and contribute to module that will be able to interface to the fullest with the Mist Systems cloud for wired and wireless.
+To provide an easy to use and contribute to module that will be able to interface to the fullest with the Mist Systems cloud.
 
 # Installation
 

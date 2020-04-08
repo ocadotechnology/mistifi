@@ -23,7 +23,7 @@ clouds = {
 logzero.loglevel(logging.ERROR)
 
 class MistiFi:
-    """All Mist API URIs are found on https://api.mist.com/api/v1/docs/Home 
+    """All Mist API URIs are found on https://api.mist.com/api/v1/docs/Home
     and are accessible if logged in
 
     Parameters
@@ -42,13 +42,13 @@ class MistiFi:
         Password for the selected cloud (cloud specific).
 
     apiv: `str`, optional, default: 1
-        The API version used for the calls. 
+        The API version used for the calls.
 
     verify: `bool`, optional, default: False
-        Same as requests verify, but defaults to False as most MM 
-        implementations are expected to not use certs. Either a boolean, in 
-        which case it controls whether we verify the server’s TLS 
-        certificate, or a string, in which case it must be a path to a CA 
+        Same as requests verify, but defaults to False as most MM
+        implementations are expected to not use certs. Either a boolean, in
+        which case it controls whether we verify the server’s TLS
+        certificate, or a string, in which case it must be a path to a CA
         bundle to use.
 
     timeout: `int`, optional, default: 10
@@ -57,10 +57,10 @@ class MistiFi:
     Examples:
     ---------
     **Ex. 1:** Use with a token
-    
+
     >>> mist = MMClient(token="thetoken")
     >>> mist.comms()
-    
+
     **Ex. 2:** Usage without the token.
 
     In this case you are asked for username and password or you can
@@ -69,7 +69,6 @@ class MistiFi:
     >>> mist = MMClient(username="theuser")
     >>> mist.comms()
     """
-
     def __init__(self, cloud="us", token="", username="", password="", apiv="1", verify=False, timeout=10):
 
         # Constructor attributes
@@ -85,76 +84,26 @@ class MistiFi:
         self.csrftoken = None
         self.mist_base_api_url = f'https://{self.cloud}/'
 
-    """
-        # Configure the session
-        #self._config_session()
-
-        #
-        # If token provided, use it to log into the Mist cloud...
-        #
-        if token:
-            self.token = token
-            self.headers['Authorization'] = f'Token {self.token}'
-
-        # ...otherwise prompt for user credentials if not provided
-        else:
-            #
-            # If username not provided, ask for it
-            #
-            self.login_payload = {"email": None, "password": None}
-
-            if not self.username:
-                user_input = input("Mist username required. Should I use `{}` to continue [Y/n]?".format(getpass.getuser()))
-
-                # Option for a user if they want to specify a username
-                if user_input.lower() == "n":
-                    #kwargs.update({ 'username': input("Username:\x20") })
-                    self.username = input("Username:\x20")
-                # ...any other answer, just use their current username
-                else:
-                    self.username = getpass.getuser()
-
-            self.login_payload['email'] = self.username
-
-            #
-            # If password not provided, ask for it
-            #
-            if not self.password:
-                #
-                # If password was not provided, get it from user input
-                self.password = getpass.getpass(f"Mist password for user `{self.username}` required:\x20".format(self.username))
-            
-            # Then set it in the login payload outside of conditional
-            # as the password might have been passed in with the object
-            self.login_payload['password'] = self.password
-
-            # Finaly login
-            self._user_login(self.login_payload)
-
-        # Reset the log level to ERROR only
-        logzero.loglevel(logging.ERROR)
-        """
-
     def comms(self):
         """The first method to be called to configure the session and to login to the Mist cloud.
 
-        It sets up the login payload in the case of username/password login
+        It sets up the login payload and the session headders depending on the type of login.
         """
 
-        logger.info('Calling communicate()')
+        logger.info('Calling comms()')
 
         #logger.debug(f"Selected cloud: '{self.cloud}' >> '{cloud.upper()}'")
         logger.debug(f'Base URL: {self.mist_base_api_url}')
 
-        # Configure the session
+        # Configure the session with basic parameters
         self._config_session()
 
         #
         # If token provided, use it to log into the Mist cloud...
         #
         if self.token:
-            self.headers['Authorization'] = f'Token {self.token}'
-            logger.debug('Proceeding with the token.')
+            self.session.headers['Authorization'] = f'Token {self.token}'
+            logger.debug('Token added to session.headers')
 
         # ...otherwise prompt for user credentials if not provided
         else:
@@ -176,11 +125,11 @@ class MistiFi:
                 #
                 # If password was not provided, get it from user input
                 self.password = getpass.getpass(f"Mist password for user `{self.username}` required:\x20".format(self.username))
-            
+
             # Then set it in the login payload outside of conditional
             # as the password might have been passed in with the object
             self.login_payload['password'] = self.password
-            logger.debug('Proceeding with username and password.')
+            logger.debug('Using username and password')
 
             # Finally login
             self._user_login(self.login_payload)
@@ -189,7 +138,7 @@ class MistiFi:
         logzero.loglevel(logging.ERROR)
 
     def logout(self):
-        """Logs out of the cloud, which is not really 
+        """Logs out of the cloud, which is not really
         needed, but available anyway.
 
         Returns
@@ -203,7 +152,7 @@ class MistiFi:
 
         logging.debug(f'Logout response: {resp}')
 
-        # Reset logging to ERROR as this method is called through _api_call and 
+        # Reset logging to ERROR as this method is called through _api_call and
         # is not reset as if it were with by calling resource
         logzero.loglevel(logging.ERROR)
 
@@ -216,20 +165,21 @@ class MistiFi:
         logger.info(f'Calling _config_session()')
 
         # Setup base headers
-        self.headers = {
+        headers = {
             'Content-Type': 'application/json',
             'Accept' : 'application/json',
         }
 
-        logger.debug(f'Updated Headers: {self.headers}')
+        logger.debug(f'Configured Headers: {headers}')
 
-        self.session = requests.Session() 
+        self.session = requests.Session()
+        self.session.headers.update(headers)
 
         # Setup the retry strategy
         # https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/
         retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
         self.session.mount(self.mist_base_api_url, HTTPAdapter(max_retries=retries))
-        
+
         # Handle response status
         #assert_status_hook = lambda response, *args, **kwargs: response.raise_for_status()
         #self.session.hooks["response"] = [assert_status_hook]
@@ -251,13 +201,13 @@ class MistiFi:
             return clouds["US"]
 
     def _user_login(self, login_payload):
-        """Method to authenticate with username/password credentials. 
+        """Method to authenticate with username/password credentials.
 
         Args
-        ---- 
+        ----
         login_payload: dict
             A dict with username and password credentials
-        
+
         Return
         ------
             None
@@ -265,7 +215,7 @@ class MistiFi:
         error_resp = {'err': True}
 
         logger.info(f'Calling _user_login()')
-        
+
         url_login = self._resource_url(uri='/login')
 
         # Login with or without the 2 factor token
@@ -275,10 +225,14 @@ class MistiFi:
         resp_head = resp.headers
         resp_status_code = resp.status_code
         resp_text = resp.text
+        resp_jtext = json.loads(resp_text)
 
         # Return nothing if status code is higher than 400
-        if resp_status_code != 200:
-            error_resp['detail'] = json.loads(resp_text)['detail']
+        if resp_status_code >= 400:
+
+            if 'detail' in resp_jtext:
+                error_resp['detail'] = resp_jtext['detail']
+
             logger.error(f'Login response code: {resp.status_code}')
             logger.error(f"Response Error:\n{error_resp}")
             exit(0)
@@ -289,7 +243,7 @@ class MistiFi:
             logger.debug(f'Response HEAD: {resp_head}')
             logger.debug(f'The response: {jresponse}')
             return jresponse
-        
+
         # Need to update the headers with the CSRF token to be able
         # to POST, PUT or DELETE in further requests
         try:
@@ -304,7 +258,7 @@ class MistiFi:
     def _api_call(self, method, url, **kwargs):
         """The API call handler.
 
-        This method is used by `resource()`. kwargs passed in get passed to the 
+        This method is used by `resource()`. kwargs passed in get passed to the
         requests.session instance
 
         Args
@@ -317,7 +271,7 @@ class MistiFi:
 
         Keyword Args
         ------------
-        These are passed into the requests and include the `params` and `json` 
+        These are passed into the requests and include the `params` and `json`
         attributes which are the exact same ones as used by requests.
 
         Returns:
@@ -332,7 +286,6 @@ class MistiFi:
         logger.info("Calling _api_call()")
         logger.info(f"Method is: {method.upper()}")
         logger.info(f"Calling URL: {url}")
-        logger.debug(f'With headers: {self.headers}')
 
         # This is where the call happens
         response = getattr(self.session, method.lower())(url, **kwargs)
@@ -341,12 +294,16 @@ class MistiFi:
         resp_head = response.headers
         resp_status_code = response.status_code
         resp_text = response.text
+        resp_jtext = json.loads(resp_text)
 
         logger.info(f"Response status code: {resp_status_code}")
 
         # Return nothing if status code is higher than 400
         if resp_status_code >= 400:
-            error_resp['detail'] = json.loads(resp_text)['detail']
+
+            if 'detail' in resp_jtext:
+                error_resp['detail'] = resp_jtext['detail']
+
             logger.error(f"Response Error:\n{resp_text}")
             return
         # Otherwise return the JSON response
@@ -358,14 +315,14 @@ class MistiFi:
 
     def _resource_url(self, **kwargs):
         """The resource URL formatter
-        
-        Will return the properly formated URL with any provided org_id, site_id, 
+
+        Will return the properly formated URL with any provided org_id, site_id,
         uri, etc, or a combination of them all.
 
         URL is returned in a Mist defines hierarchy with org_id first, then site_id,
         then other IDs and URIs.
 
-        Current special kwargs are: 
+        Current special kwargs are:
             ``org_id``, ``site_id``, ``map_id``, ``wlan_id``, ``uri``, ``apitoken_id``, ``params``
 
         Args
@@ -379,11 +336,11 @@ class MistiFi:
         wlan_id: `str`
             The WLAN ID of a specific WLAN
         uri: `str`
-            The endpoint resource, e.g. '/self', or 'self', 
+            The endpoint resource, e.g. '/self', or 'self',
             or '/self/' will all work
         apitoken_id: `str`
             The token ID of a specific user token
-        
+
         Keyword Args
         ------------
         various: `str`
@@ -396,7 +353,7 @@ class MistiFi:
         """
         logger.info("Calling _resource_url()")
         logger.info(f"kwargs in: {kwargs}")
-        
+
         url = f"{self.mist_base_api_url}api/v{self.apiv}/"
 
         # Set of above parameters that will be skipped by the
@@ -425,7 +382,7 @@ class MistiFi:
         #if 'provider' in kwargs:
         #    provider_id = f"oauth/{kwargs['provider']}"
         #    url = urljoin(url, provider_id) + "/"
-        #    known_id_names.add("provider")            
+        #    known_id_names.add("provider")
         if 'uri' in kwargs:
             url = urljoin(url, kwargs['uri'].strip('/'))
             known_id_names.add("uri")
@@ -434,13 +391,13 @@ class MistiFi:
             known_id_names.add("apitoken_id")
 
 
-        # Add to URL parameters from kwargs and skip the 
+        # Add to URL parameters from kwargs and skip the
         # ones that are in known_id_names
         for k, v in kwargs.items():
-            
+
             if k in known_id_names:
                 continue
-            
+
             # Constructs the end of the URL from kwargs but
             # skips if a kwargs parameter is not a string
             if isinstance(v, str):
@@ -456,9 +413,9 @@ class MistiFi:
     def _params(self, **kwargs):
         """Parameters configurator for passing into requests as params attribute.
 
-        Meant for parameters that get passed with the `params` attribute of 
+        Meant for parameters that get passed with the `params` attribute of
         requests.
-        
+
         Keyword Args:
         -------------
         params: `dict`
@@ -483,27 +440,27 @@ class MistiFi:
         return params
 
     def resource(self, method, jpayload=None, **kwargs):
-        """Actions the HTTP request 
+        """Actions the HTTP request
 
         type defined with the `method`.
 
-        This is the main function of the class, which does all the interfacing 
+        This is the main function of the class, which does all the interfacing
         with the API. It can be called by its own with a valid HTTP method,
         but the preferred way is to define a resource method below that utilizes
-        this one for interfacing. The difference between the 2 approaches is 
+        this one for interfacing. The difference between the 2 approaches is
         shown in the Examples or README file.
-        
+
         Args:
         -----
         method: `str`
-            Either `GET` or `POST`. Case insensitive.    
+            Either `GET` or `POST`. Case insensitive.
         jpayload: dict, optional
-            JSON formated payload. Same as requests json sent with the body of 
+            JSON formated payload. Same as requests json sent with the body of
             the request.
 
         Keyword Args
         ------------
-        These get passed to the `_params()` and `_resource_url()` methods, so read 
+        These get passed to the `_params()` and `_resource_url()` methods, so read
         what is accepted there.
 
         Returns:
@@ -512,7 +469,7 @@ class MistiFi:
         """
         logger.info("Calling resource()")
         logger.debug(f'kwargs in: {kwargs}')
-        
+
         # Get the params from the passed in kwargs
         params = self._params(**kwargs)
 
@@ -521,7 +478,7 @@ class MistiFi:
 
         # Get the JSON response
         jresp = self._api_call(method, resource_url, params=params, json=jpayload)
-        
+
         # Reset logging to ERROR
         logzero.loglevel(logging.ERROR)
 
@@ -530,7 +487,7 @@ class MistiFi:
     #
     ## Here are defined resource methods that interface with a specific endpoint.
     #
-    
+
     def whoami(self, method='GET', **kwargs):
         """Resource method for manipulating '/self' endpoint.
 
@@ -571,7 +528,7 @@ class MistiFi:
         ----
         method: str, default 'GET'
             A valid HTTP method.
-            If kwargs contains 'apitoken_id', the method changes to DELETE. 
+            If kwargs contains 'apitoken_id', the method changes to DELETE.
 
         Keyword Args
         ------------
@@ -621,6 +578,3 @@ class MistiFi:
             kwargs['uri'] = f'/wlans'
 
         return self.resource(method, jpayload=jdata, **kwargs)
-
-
-

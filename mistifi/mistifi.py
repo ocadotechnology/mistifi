@@ -229,8 +229,10 @@ class MistiFi:
 
         # Return nothing if status code is higher than 400
         if resp_status_code >= 400:
+
             if 'detail' in resp_jtext:
                 error_resp['detail'] = resp_jtext['detail']
+
             logger.error(f'Login response code: {resp.status_code}')
             logger.error(f"Response Error:\n{error_resp}")
             exit(0)
@@ -298,8 +300,10 @@ class MistiFi:
 
         # Return nothing if status code is higher than 400
         if resp_status_code >= 400:
+
             if 'detail' in resp_jtext:
                 error_resp['detail'] = resp_jtext['detail']
+
             logger.error(f"Response Error:\n{resp_text}")
             return
         # Otherwise return the JSON response

@@ -90,7 +90,7 @@ class MistiFi:
         It sets up the login payload and the session headders depending on the type of login.
         """
 
-        logger.info('Calling communicate()')
+        logger.info('Calling comms()')
 
         #logger.debug(f"Selected cloud: '{self.cloud}' >> '{cloud.upper()}'")
         logger.debug(f'Base URL: {self.mist_base_api_url}')

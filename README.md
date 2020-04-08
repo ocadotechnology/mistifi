@@ -1,10 +1,10 @@
 # Mistifi
 
-Mistifi is a highly scalable Python module enabling full interfacing with the Mist RestAPI.
+Mistifi is a Python module enabling full interfacing with the Mist RestAPI.
 
 ## Motivation
 
-To provide a scalable, easy to use and easy to contribute to module that will be able to interface to the fullest with the Mist Systems cloud for wired and wireless.
+To provide an easy to use and contribute to module that will be able to interface to the fullest with the Mist Systems cloud for wired and wireless.
 
 # Installation
 
@@ -28,7 +28,7 @@ The usage workflow intended is:
 2. Initiate communication with the `comms()` method.
 3. Interface with the API with the use of either a specific endpoint method (like `wlans()` for example) or the `resource()` method.
 
-## Create an instance 
+## Create an instance
 ### Selecting a cloud
 
 When creating an instance pass in the `cloud` option to specify a direct instance of a cloud.
@@ -107,28 +107,28 @@ True
 ## Understanding the resource() method
 The main method all others use on is `resource()`. You can pass keyword arguments into it. Pretty much anything will work, but there are some rules.
 
-First thing is that those kwargs are used to build the URL to the Mist cloud endpoint, therefore passing in proper parameters is necessary. Some parameters are special and handled differently. 
+First thing is that those kwargs are used to build the URL to the Mist cloud endpoint, therefore passing in proper parameters is necessary. Some parameters are special and handled differently.
 
 Example of special kwargs is `params`. If passing in that kwarg, it will be handled differently so that it is passed into the `requests.Session()` as `params`.
 
-If passing in `org_id=':org_id'`, `site_id='site_id'`, `uri='some_uri'` will create URL properly with the `org_id` first `site_id` second and then the `uri`. 
+If passing in `org_id=':org_id'`, `site_id='site_id'`, `uri='some_uri'` will create URL properly with the `org_id` first `site_id` second and then the `uri`.
 
 All other kwargs will be added at the end to the URL, so make sure that URL exists. Error 400 is thrown otherwise.
 
 Example:
 ```python
 mist.resource(
-	"GET", 
-	site_id=":site_id123", 
-	wlan_id=":wlan_id123", 
-	org_id=":org_id123", 
-	blah="/blah", 
+	"GET",
+	site_id=":site_id123",
+	wlan_id=":wlan_id123",
+	org_id=":org_id123",
+	blah="/blah",
 	params={"paramA": "valueA", 'paramB': 'valueB'})
 ```
 builds the URL to `https://api.mist.com/api/v1/orgs/:org_id123/sites/:site_id123/wlans/:wlan_id123/blah` and `params` are added at the end when passed in the requests as `params`.
 
 # Additional
-## Debugging 
+## Debugging
 
 The default debug level is `ERROR`, which can be changed per method call by preempting it with `logzero.loglevel(logging.LEVEL)` where `LEVEL` is the debug level.
 Each method then resets logging to `ERROR`, so you need to set logging level before each one.
@@ -213,8 +213,3 @@ Thank you for helping us develop Mistifi. We're happy to accept contribution of 
 ## Contributors
 - [Ben Cardy](https://github.com/benbacardi)
 - [Primoz Marinsek](https://github.com/pmarinsek)
-
-
-
-
-

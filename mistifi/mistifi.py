@@ -173,6 +173,7 @@ class MistiFi:
         logger.debug(f'Configured Headers: {headers}')
 
         self.session = requests.Session()
+        self.session.headers.update(headers)
 
         # Setup the retry strategy
         # https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/
@@ -281,7 +282,12 @@ class MistiFi:
         logger.info("Calling _api_call()")
         logger.info(f"Method is: {method.upper()}")
         logger.info(f"Calling URL: {url}")
-        logger.debug(f'With headers: {self.session.headers}')
+
+        # Hide the token before displaying it in the debug
+        headers = self.session.headers
+        if 'Authorization' in headers:
+            headers['Authorization'] = "Token <hidden>"
+        logger.debug(f'With headers: {headers}')
 
         # This is where the call happens
         response = getattr(self.session, method.lower())(url, **kwargs)
